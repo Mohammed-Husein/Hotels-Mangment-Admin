@@ -1,0 +1,11 @@
+// Write your overrides
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.swal2-confirm-btn {
+    color: #fff !important; /* ✅ اجعل النص باللون الأبيض */
+  }
+  .swal2-cancel-btn{
+    color: #EA5455 !important;
+  }
