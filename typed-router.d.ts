@@ -47,7 +47,10 @@ declare module 'vue-router/auto/routes' {
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
     'setting': RouteRecordInfo<'setting', '/setting', Record<never, never>, Record<never, never>>,
+    'setting-components-city': RouteRecordInfo<'setting-components-city', '/setting/components/city', Record<never, never>, Record<never, never>>,
     'setting-components-country': RouteRecordInfo<'setting-components-country', '/setting/components/country', Record<never, never>, Record<never, never>>,
+    'setting-components-payment-method': RouteRecordInfo<'setting-components-payment-method', '/setting/components/paymentMethod', Record<never, never>, Record<never, never>>,
+    'setting-components-region': RouteRecordInfo<'setting-components-region', '/setting/components/region', Record<never, never>, Record<never, never>>,
     'tow-step': RouteRecordInfo<'tow-step', '/tow-step', Record<never, never>, Record<never, never>>,
   }
 }

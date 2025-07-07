@@ -1,9 +1,27 @@
 <script setup lang="ts">
 import country from "./components/country.vue";
+import city from "./components/city.vue";
+import region from "./components/region.vue";
+import paymentMethod from "./components/paymentMethod.vue";
 </script>
 <template>
   <h3>الإعدادات <VIcon>tabler-settings</VIcon></h3>
   <country />
+
+  <!-- مكون المدن -->
+  <div class="mt-5">
+    <city />
+  </div>
+
+  <!-- مكون المناطق -->
+  <div class="mt-5">
+    <region />
+  </div>
+
+  <!-- مكون طرق الدفع -->
+  <div class="mt-5">
+    <paymentMethod />
+  </div>
 
   <div class="grid grid-rows-2 grid-cols-12 gap-4 mt-5 same-height">
     <!-- <country /> -->
