@@ -10,6 +10,11 @@ export default [
     icon: { icon: "tabler-users" },
   },
   {
+    title: "العملاء",
+    to: { name: "customer" },
+    icon: { icon: "tabler-user" },
+  },
+  {
     title: "الاعدادت",
     to: { name: "setting" },
     icon: { icon: "tabler-settings" },

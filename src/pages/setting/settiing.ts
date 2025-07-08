@@ -18,7 +18,7 @@ export const useSettingStore = defineStore("Setting", () => {
       SETTING_API.GetAll,
       {
         ...Filters,
-        page: paginationCountry.value.currentPage, // ✅ الاسم الصحيح الذي يتوقعه السيرفر
+        page: paginationCountry.value.currentPage,
         limit: paginationCountry.value.limit,
       },
       {},
@@ -80,7 +80,16 @@ export const useSettingStore = defineStore("Setting", () => {
       (item: any) => !ids.includes(item.id)
     );
   }
+  const CountryNameList = ref([]);
+  async function GetAllCountryNames() {
+    const response = GET("countries/names", {}, {}, {});
+    CountryNameList.value = response.data?.data.countries || [];
+    return response.data?.data.countries || [];
+  }
+
   return {
+    GetAllCountryNames,
+    CountryNameList,
     countryList,
     paginationCountry,
     GetAllCountry,
