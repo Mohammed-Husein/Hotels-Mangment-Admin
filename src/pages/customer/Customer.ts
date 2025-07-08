@@ -1,5 +1,5 @@
 import { useApi, usePagination } from "@/composables";
-import type { CustomersFiltersDto, GetAllCustomerDto } from "./api/dto";
+import type { AddCustomerDto, ChangeCustomerStatusDto, CustomersFiltersDto, GetAllCustomerDto, ModifyCustomerDto } from "./api/dto";
 import { DetailsCustomerDto } from "./api/dto";
 import { CUSTOMER_API } from "./api/endpoint";
 
@@ -50,7 +50,7 @@ export const useCustomerStore = defineStore("Customer", () => {
   }
 
   // Add Customer
-  async function AddCustomer(payload: any) {
+  async function AddCustomer(payload: AddCustomerDto) {
     const response = await POST(
       CUSTOMER_API.Add,
       payload,
@@ -58,7 +58,10 @@ export const useCustomerStore = defineStore("Customer", () => {
       { formData: false }
     );
 
-    CustomerList.value?.unshift(payload);
+    // Refresh the customer list after adding
+    if (response.success) {
+      await GetAllCustomer({} as CustomersFiltersDto);
+    }
 
     return response;
   }
@@ -73,7 +76,7 @@ export const useCustomerStore = defineStore("Customer", () => {
   }
 
   // Modify Customer
-  async function ModifyCustomer(payload: any) {
+  async function ModifyCustomer(payload: ModifyCustomerDto) {
     const response = await POST(
       CUSTOMER_API.Modify,
       payload,
@@ -81,7 +84,29 @@ export const useCustomerStore = defineStore("Customer", () => {
       { formData: false }
     );
 
-    CustomerList.value?.unshift(payload);
+    // Refresh the customer details and list after modification
+    if (response.success && payload.id) {
+      await GetDetailsCustomer(payload.id);
+      await GetAllCustomer({} as CustomersFiltersDto);
+    }
+
+    return response;
+  }
+
+  // Change Customer Status
+  async function ChangeCustomerStatus(userId: string, payload: ChangeCustomerStatusDto) {
+    const response = await POST(
+      `${CUSTOMER_API.ChangeStatus}/${userId}`,
+      payload,
+      { error: true, success: "تمت العملية بنجاح" },
+      { formData: false }
+    );
+
+    // Refresh the customer details and list after status change
+    if (response.success) {
+      await GetDetailsCustomer(userId);
+      await GetAllCustomer({} as CustomersFiltersDto);
+    }
 
     return response;
   }
@@ -122,6 +147,7 @@ export const useCustomerStore = defineStore("Customer", () => {
     GetDetailsCustomer,
     AddCustomer,
     ModifyCustomer,
+    ChangeCustomerStatus,
     DeleteCustomer,
     GetAllCustomerName,
     CustomerNames,

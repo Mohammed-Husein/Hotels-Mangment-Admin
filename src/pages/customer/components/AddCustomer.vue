@@ -6,12 +6,16 @@ import { ref } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
 import { useCustomerStore } from "../Customer";
+import { storeToRefs } from "pinia";
+import { requiredValidator } from "@/@core/utils/validators";
+import type { AddCustomerDto } from "../api/dto";
+
 const CustomerForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
 const settingStore = useSettingStore();
 settingStore.GetAllCountryNames();
 const { CountryNameList } = storeToRefs(settingStore);
-const AddDto = ref({
+const AddDto = ref<AddCustomerDto>({
   firstName: "",
   lastName: "",
   email: "",
@@ -23,7 +27,7 @@ const AddDto = ref({
   countryId: "",
   cityId: "",
   detailedAddress: "",
-  preferredLanguage: "",
+  preferredLanguage: "Arabic",
 });
 const results = ref();
 const toast = useToast();
@@ -48,7 +52,21 @@ const save = async () => {
   if (result.valid) {
     AddLoading.value = true;
     try {
-      await store.AddCustomer({ ...AddDto.value });
+      const customerData: AddCustomerDto = {
+        firstName: AddDto.value.firstName,
+        lastName: AddDto.value.lastName,
+        email: AddDto.value.email,
+        password: AddDto.value.password,
+        confirmPassword: AddDto.value.confirmPassword,
+        phoneNumber: AddDto.value.phoneNumber,
+        alternatePhoneNumber: AddDto.value.alternatePhoneNumber,
+        regionId: AddDto.value.regionId,
+        countryId: AddDto.value.countryId,
+        cityId: AddDto.value.cityId,
+        detailedAddress: AddDto.value.detailedAddress,
+        preferredLanguage: AddDto.value.preferredLanguage,
+      };
+      await store.AddCustomer(customerData);
       router.go(-1);
     } catch (error) {
       console.error("Failed to save Customer:", error);
@@ -85,7 +103,7 @@ const save = async () => {
         <VCol cols="12" md="6">
           <label>اسم العميل الثاني <span class="text-error">*</span></label
           ><AppTextField
-            v-model="AddDto.firstName"
+            v-model="AddDto.lastName"
             class="mx-2"
             :rules="[requiredValidator]"
           />
@@ -140,9 +158,30 @@ const save = async () => {
           </div>
         </VCol>
         <VCol cols="12" md="6">
+          <label>رقم الهاتف البديل</label>
+          <div class="w-full md:w-[75%]">
+            <div dir="ltr">
+              <MazPhoneNumberInput
+                @update="results = $event"
+                label="رقم الهاتف البديل"
+                :isValid="true"
+                show-code-on-list
+                v-model="AddDto.alternatePhoneNumber"
+                :noFlags="false"
+                class="w-[90%] px-5"
+                :preferred-countries="CountryList"
+                v-model:country-code="DefaultCountry"
+                theme="dark"
+                size="md"
+              />
+            </div>
+          </div>
+        </VCol>
+        <VCol cols="12" md="6">
           <label> كلمة السر<span class="text-error">*</span></label>
           <AppTextField
             v-model="AddDto.password"
+            type="password"
             class="mx-2"
             :rules="[requiredValidator]"
           />
@@ -151,8 +190,22 @@ const save = async () => {
           <label> تأكيد كلمة السر<span class="text-error">*</span></label>
           <AppTextField
             v-model="AddDto.confirmPassword"
+            type="password"
             class="mx-2"
             :rules="[requiredValidator]"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
+          <label> اللغة المفضلة</label>
+          <VSelect
+            v-model="AddDto.preferredLanguage"
+            :items="[
+              { title: 'العربية', value: 'Arabic' },
+              { title: 'English', value: 'English' }
+            ]"
+            item-title="title"
+            item-value="value"
+            class="mx-2"
           />
         </VCol>
         <VCol cols="12" md="6">
@@ -160,7 +213,7 @@ const save = async () => {
           <VAutocomplete
             :items="CountryNameList"
             item-title="name"
-            item-value=" id"
+            item-value="id"
             v-model="AddDto.countryId"
             class="mx-2"
             :rules="[requiredValidator]"

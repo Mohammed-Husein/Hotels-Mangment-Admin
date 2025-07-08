@@ -2,18 +2,18 @@
 import { CountryList, DefaultCountry } from "@/composables/countryList";
 import { router } from "@/plugins/1.router";
 import { VForm } from "vuetify/lib/components/index.mjs";
-import { useCustomerStore } from "./Customer";
+import { useEmployeeStore } from "./employee";
 import { useToast } from "vue-toastification";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { storeToRefs } from "pinia";
 import { requiredValidator } from "@/@core/utils/validators";
-import type { ChangeCustomerStatusDto } from "./api/dto";
+import type { ChangeEmployeeStatusDto } from "./api/dto";
 
-const store = useCustomerStore();
+const store = useEmployeeStore();
 const route = useRoute();
 const results = ref();
 const toast = useToast();
-const CustomerForm = ref<VForm>();
+const EmployeeForm = ref<VForm>();
 const ModifyLoading = ref(false);
 const StatusLoading = ref(false);
 const showStatusDialog = ref(false);
@@ -22,47 +22,55 @@ const statusReason = ref("");
 const settingStore = useSettingStore();
 settingStore.GetAllCountryNames();
 const { CountryNameList } = storeToRefs(settingStore);
-const { CustomerDetails } = storeToRefs(store);
+const { EmployeeDetails } = storeToRefs(store);
 
-store.GetDetailsCustomer(route.params.id as string);
+store.GetDetailsEmployee(route.params.id as string);
+
+// Employee roles
+const employeeRoles = [
+  { title: "مدير عام", value: "SuperAdmin" },
+  { title: "مدير", value: "Admin" },
+  { title: "مدير فرع", value: "Manager" },
+  { title: "موظف استقبال", value: "Receptionist" },
+  { title: "مشرف", value: "Supervisor" },
+];
 
 const modifyBtn = async () => {
-  if (!CustomerForm.value) {
-    console.error("CustomerForm is not initialized");
+  if (!EmployeeForm.value) {
+    console.error("EmployeeForm is not initialized");
     return;
   }
-
-  const result = await CustomerForm.value.validate();
+  
+  const result = await EmployeeForm.value.validate();
   if (!result.valid) {
     toast.error("يجب عليك إدخال الحقول المطلوبة");
     return;
   }
-
+  
   if (results.value && results.value.isValid === false) {
     toast.error("يجب عليك ادخال رقم هاتف صالح");
     return;
   }
-
+  
   ModifyLoading.value = true;
   try {
     const modifyData = {
-      id: CustomerDetails.value.id,
-      firstName: CustomerDetails.value.firstName,
-      lastName: CustomerDetails.value.lastName,
-      email: CustomerDetails.value.email,
-      phoneNumber: CustomerDetails.value.phoneNumber,
-      alternatePhoneNumber: CustomerDetails.value.alternatePhoneNumber,
-      regionId: CustomerDetails.value.regionId,
-      countryId: CustomerDetails.value.countryId,
-      cityId: CustomerDetails.value.cityId,
-      detailedAddress: CustomerDetails.value.detailedAddress,
-      preferredLanguage: CustomerDetails.value.preferredLanguage,
+      id: EmployeeDetails.value.id,
+      fullName: EmployeeDetails.value.fullName,
+      email: EmployeeDetails.value.email,
+      phoneNumber: EmployeeDetails.value.phoneNumber,
+      role: EmployeeDetails.value.role,
+      countryId: EmployeeDetails.value.countryId,
+      status: EmployeeDetails.value.status,
+      permissions: EmployeeDetails.value.permissions,
+      notes: EmployeeDetails.value.notes,
+      deviceToken: EmployeeDetails.value.deviceToken,
     };
-
-    await store.ModifyCustomer(modifyData);
+    
+    await store.ModifyEmployee(modifyData);
     router.go(-1);
   } catch (error) {
-    console.error("Failed to modify Customer:", error);
+    console.error("Failed to modify Employee:", error);
   } finally {
     ModifyLoading.value = false;
   }
@@ -81,76 +89,136 @@ const confirmStatusChange = async () => {
 
   StatusLoading.value = true;
   try {
-    const newStatus = CustomerDetails.value.status === "Active" ? "Suspended" : "Active";
-    const statusData: ChangeCustomerStatusDto = {
+    let newStatus: "Active" | "Inactive" | "Suspended" | "OnLeave";
+    
+    switch (EmployeeDetails.value.status) {
+      case "Active":
+        newStatus = "Suspended";
+        break;
+      case "Suspended":
+        newStatus = "Active";
+        break;
+      case "Inactive":
+        newStatus = "Active";
+        break;
+      case "OnLeave":
+        newStatus = "Active";
+        break;
+      default:
+        newStatus = "Active";
+    }
+
+    const statusData: ChangeEmployeeStatusDto = {
       status: newStatus,
       reason: statusReason.value.trim(),
     };
 
-    await store.ChangeCustomerStatus(CustomerDetails.value.id, statusData);
+    await store.ChangeEmployeeStatus(EmployeeDetails.value.id, statusData);
     showStatusDialog.value = false;
     statusReason.value = "";
   } catch (error) {
-    console.error("Failed to change customer status:", error);
+    console.error("Failed to change employee status:", error);
   } finally {
     StatusLoading.value = false;
   }
 };
 
 const getStatusButtonText = () => {
-  return CustomerDetails.value.status === "Active" ? "حظر العميل" : "إلغاء الحظر";
+  switch (EmployeeDetails.value.status) {
+    case "Active":
+      return "تعليق الموظف";
+    case "Suspended":
+      return "إلغاء التعليق";
+    case "Inactive":
+      return "تفعيل الموظف";
+    case "OnLeave":
+      return "إنهاء الإجازة";
+    default:
+      return "تغيير الحالة";
+  }
 };
 
 const getStatusButtonColor = () => {
-  return CustomerDetails.value.status === "Active" ? "warning" : "success";
+  switch (EmployeeDetails.value.status) {
+    case "Active":
+      return "warning";
+    case "Suspended":
+    case "Inactive":
+    case "OnLeave":
+      return "success";
+    default:
+      return "primary";
+  }
+};
+
+const getStatusChipColor = () => {
+  switch (EmployeeDetails.value.status) {
+    case "Active":
+      return "success";
+    case "Suspended":
+      return "warning";
+    case "Inactive":
+      return "error";
+    case "OnLeave":
+      return "info";
+    default:
+      return "grey";
+  }
+};
+
+const getStatusText = () => {
+  switch (EmployeeDetails.value.status) {
+    case "Active":
+      return "نشط";
+    case "Suspended":
+      return "معلق";
+    case "Inactive":
+      return "غير نشط";
+    case "OnLeave":
+      return "في إجازة";
+    default:
+      return "غير محدد";
+  }
 };
 </script>
 
 <template>
   <div class="flex items-center justify-between">
     <div class="flex">
-      <h4>العملاء</h4>
+      <h4>الموظفين</h4>
       <h4>
-        / تعديل عميل
-        <VIcon> tabler-user </VIcon>
+        / تعديل موظف
+        <VIcon> tabler-users </VIcon>
       </h4>
     </div>
-    <VChip
-      :color="CustomerDetails.status === 'Active' ? 'success' : CustomerDetails.status === 'Suspended' ? 'warning' : 'error'"
+    <VChip 
+      :color="getStatusChipColor()"
       variant="tonal"
       size="small"
     >
-      {{ CustomerDetails.status === 'Active' ? 'نشط' : CustomerDetails.status === 'Suspended' ? 'محظور' : 'غير نشط' }}
+      {{ getStatusText() }}
     </VChip>
   </div>
 
-  <VForm ref="CustomerForm">
+  <VForm ref="EmployeeForm">
     <VCard class="mt-5">
       <div class="flex justify-between">
-        <h3 class="mb-4 mt-4 mx-5">معلومات العميل</h3>
+        <h3 class="mb-4 mt-4 mx-5">معلومات الموظف</h3>
       </div>
       <VRow class="mb-5 mx-1 mt-7">
         <VCol cols="12" md="6">
           <label>رقم ID <span class="text-error">*</span></label>
           <AppTextField
-            v-model="CustomerDetails.number"
+            v-model="EmployeeDetails.number"
             placeholder="رقم ID"
             class="mx-2"
             disabled
           />
         </VCol>
         <VCol cols="12" md="6">
-          <label>اسم العميل الأول <span class="text-error">*</span></label>
+          <label>الاسم الكامل <span class="text-error">*</span></label>
           <AppTextField
-            v-model="CustomerDetails.firstName"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>اسم العميل الثاني <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="CustomerDetails.lastName"
+            v-model="EmployeeDetails.fullName"
             class="mx-2"
             :rules="[requiredValidator]"
           />
@@ -158,7 +226,8 @@ const getStatusButtonColor = () => {
         <VCol cols="12" md="6">
           <label>البريد الالكتروني <span class="text-error">*</span></label>
           <AppTextField
-            v-model="CustomerDetails.email"
+            v-model="EmployeeDetails.email"
+            type="email"
             class="mx-2"
             :rules="[requiredValidator]"
           />
@@ -174,7 +243,7 @@ const getStatusButtonColor = () => {
                   :isValid="true"
                   show-code-on-list
                   :rules="[requiredValidator]"
-                  v-model="CustomerDetails.phoneNumber"
+                  v-model="EmployeeDetails.phoneNumber"
                   :noFlags="false"
                   class="w-[90%] px-5"
                   :preferred-countries="CountryList"
@@ -187,24 +256,15 @@ const getStatusButtonColor = () => {
           </div>
         </VCol>
         <VCol cols="12" md="6">
-          <label>رقم الهاتف البديل</label>
-          <div class="w-full md:w-[75%]">
-            <div dir="ltr">
-              <MazPhoneNumberInput
-                @update="results = $event"
-                label="رقم الهاتف البديل"
-                :isValid="true"
-                show-code-on-list
-                v-model="CustomerDetails.alternatePhoneNumber"
-                :noFlags="false"
-                class="w-[90%] px-5"
-                :preferred-countries="CountryList"
-                v-model:country-code="DefaultCountry"
-                theme="dark"
-                size="md"
-              />
-            </div>
-          </div>
+          <label>الدور الوظيفي <span class="text-error">*</span></label>
+          <VSelect
+            v-model="EmployeeDetails.role"
+            :items="employeeRoles"
+            item-title="title"
+            item-value="value"
+            class="mx-2"
+            :rules="[requiredValidator]"
+          />
         </VCol>
         <VCol cols="12" md="6">
           <label>البلد <span class="text-error">*</span></label>
@@ -212,48 +272,20 @@ const getStatusButtonColor = () => {
             :items="CountryNameList"
             item-title="name"
             item-value="id"
-            v-model="CustomerDetails.countryId"
+            v-model="EmployeeDetails.countryId"
             class="mx-2"
             :rules="[requiredValidator]"
           />
         </VCol>
         <VCol cols="12" md="6">
-          <label>المدينة <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="CustomerDetails.cityId"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>المنطقة <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="CustomerDetails.regionId"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>اللغة المفضلة</label>
+          <label>حالة الموظف</label>
           <VSelect
-            v-model="CustomerDetails.preferredLanguage"
-            :items="[
-              { title: 'العربية', value: 'Arabic' },
-              { title: 'English', value: 'English' }
-            ]"
-            item-title="title"
-            item-value="value"
-            class="mx-2"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>حالة العميل</label>
-          <VSelect
-            v-model="CustomerDetails.status"
+            v-model="EmployeeDetails.status"
             :items="[
               { title: 'نشط', value: 'Active' },
               { title: 'غير نشط', value: 'Inactive' },
-              { title: 'محظور', value: 'Suspended' }
+              { title: 'معلق', value: 'Suspended' },
+              { title: 'في إجازة', value: 'OnLeave' }
             ]"
             item-title="title"
             item-value="value"
@@ -261,9 +293,16 @@ const getStatusButtonColor = () => {
             disabled
           />
         </VCol>
+        <VCol cols="12" md="6">
+          <label>رمز الجهاز</label>
+          <AppTextField
+            v-model="EmployeeDetails.deviceToken"
+            class="mx-2"
+          />
+        </VCol>
         <VCol cols="12" md="12">
-          <label>العنوان التفصيلي ان وجد</label>
-          <VTextarea v-model="CustomerDetails.detailedAddress" class="mx-2" />
+          <label>ملاحظات</label>
+          <VTextarea v-model="EmployeeDetails.notes" class="mx-2" />
         </VCol>
       </VRow>
     </VCard>
@@ -271,13 +310,13 @@ const getStatusButtonColor = () => {
 
   <div class="flex justify-end mt-4 mx-2">
     <VBtn class="mx-1" :loading="ModifyLoading" @click="modifyBtn"> تعديل </VBtn>
-    <VBtn
-      class="mx-1"
-      :color="getStatusButtonColor()"
-      variant="tonal"
+    <VBtn 
+      class="mx-1" 
+      :color="getStatusButtonColor()" 
+      variant="tonal" 
       @click="changeStatusBtn"
-    >
-      {{ getStatusButtonText() }}
+    > 
+      {{ getStatusButtonText() }} 
     </VBtn>
     <VBtn color="error" variant="tonal" @click="router.go(-1)"> إلغاء </VBtn>
   </div>
@@ -286,14 +325,11 @@ const getStatusButtonColor = () => {
   <VDialog v-model="showStatusDialog" max-width="500px">
     <VCard>
       <VCardTitle class="text-h5">
-        {{ CustomerDetails.status === "Active" ? "حظر العميل" : "إلغاء حظر العميل" }}
+        {{ getStatusButtonText() }}
       </VCardTitle>
       <VCardText>
         <p class="mb-4">
-          {{ CustomerDetails.status === "Active"
-            ? "هل أنت متأكد من أنك تريد حظر هذا العميل؟"
-            : "هل أنت متأكد من أنك تريد إلغاء حظر هذا العميل؟"
-          }}
+          هل أنت متأكد من أنك تريد {{ getStatusButtonText().toLowerCase() }}؟
         </p>
         <VTextField
           v-model="statusReason"
@@ -308,8 +344,8 @@ const getStatusButtonColor = () => {
         <VBtn color="grey" variant="text" @click="showStatusDialog = false">
           إلغاء
         </VBtn>
-        <VBtn
-          :color="getStatusButtonColor()"
+        <VBtn 
+          :color="getStatusButtonColor()" 
           :loading="StatusLoading"
           @click="confirmStatusChange"
         >

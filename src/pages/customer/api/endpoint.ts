@@ -5,4 +5,5 @@ export enum CUSTOMER_API {
   Modify = "users",
   GetNames = "users",
   Delete = "users",
+  ChangeStatus = "users/changeStatus",
 }
