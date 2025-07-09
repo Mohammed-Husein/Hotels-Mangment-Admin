@@ -45,6 +45,8 @@ declare module 'vue-router/auto/routes' {
     'customer-id': RouteRecordInfo<'customer-id', '/customer/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'customer-components-add-customer': RouteRecordInfo<'customer-components-add-customer', '/customer/components/AddCustomer', Record<never, never>, Record<never, never>>,
     'employees': RouteRecordInfo<'employees', '/employees', Record<never, never>, Record<never, never>>,
+    'employees-id': RouteRecordInfo<'employees-id', '/employees/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'employees-components-add-employee': RouteRecordInfo<'employees-components-add-employee', '/employees/components/AddEmployee', Record<never, never>, Record<never, never>>,
     'forget-password': RouteRecordInfo<'forget-password', '/forgetPassword', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,

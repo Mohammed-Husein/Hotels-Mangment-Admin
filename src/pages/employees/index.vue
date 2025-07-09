@@ -243,7 +243,7 @@ onMounted(() => {
 
             <VBtn
               class="mt-1 mx-1"
-              @click="router.push('/employee/components/AddEmployee')"
+              @click="router.push('/employees/components/AddEmployee')"
             >
               إضافة موظف<VIcon class="px-1"> tabler-plus </VIcon>
             </VBtn>
@@ -276,7 +276,7 @@ onMounted(() => {
         <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1 justify-center align-center">
-            <IconBtn @click="router.push(`/employee/${item.id}`)">
+            <IconBtn @click="router.push(`/employees/${item.id}`)">
               <VIcon icon="tabler-edit" />
             </IconBtn>
 
