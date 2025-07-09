@@ -8,6 +8,7 @@ import { useSettingStore } from "@/pages/setting/settiing";
 import { storeToRefs } from "pinia";
 import { requiredValidator } from "@/@core/utils/validators";
 import type { ChangeCustomerStatusDto } from "./api/dto";
+import { onMounted, watch } from "vue";
 
 const store = useCustomerStore();
 const route = useRoute();
@@ -20,11 +21,44 @@ const showStatusDialog = ref(false);
 const statusReason = ref("");
 
 const settingStore = useSettingStore();
-settingStore.GetAllCountryNames();
 const { CountryNameList } = storeToRefs(settingStore);
-const { CustomerDetails } = storeToRefs(store);
+const { CustomerDetails, CitiesList, RegionsList } = storeToRefs(store);
 
-store.GetDetailsCustomer(route.params.id as string);
+// Load customer details and countries
+onMounted(async () => {
+  await settingStore.GetAllCountryNames();
+  await store.GetDetailsCustomer(route.params.id as string);
+});
+
+// Load cities and regions when customer details are loaded
+watch(() => CustomerDetails.value.countryId, (newCountryId) => {
+  if (newCountryId) {
+    store.GetCitiesByCountry(newCountryId);
+  }
+});
+
+watch(() => CustomerDetails.value.cityId, (newCityId) => {
+  if (newCityId) {
+    store.GetRegionsByCity(newCityId);
+  }
+});
+
+// Watch for country change to load cities
+const onCountryChange = (countryId: string) => {
+  if (countryId) {
+    store.GetCitiesByCountry(countryId);
+    CustomerDetails.value.cityId = ""; // Reset city selection
+    CustomerDetails.value.regionId = ""; // Reset region selection
+  }
+};
+
+// Watch for city change to load regions
+const onCityChange = (cityId: string) => {
+  if (cityId) {
+    store.GetRegionsByCity(cityId);
+    CustomerDetails.value.regionId = ""; // Reset region selection
+  }
+};
 
 const modifyBtn = async () => {
   if (!CustomerForm.value) {
@@ -46,7 +80,7 @@ const modifyBtn = async () => {
   ModifyLoading.value = true;
   try {
     const modifyData = {
-      id: CustomerDetails.value.id,
+      id: CustomerDetails.value.id || CustomerDetails.value._id,
       firstName: CustomerDetails.value.firstName,
       lastName: CustomerDetails.value.lastName,
       email: CustomerDetails.value.email,
@@ -87,7 +121,7 @@ const confirmStatusChange = async () => {
       reason: statusReason.value.trim(),
     };
 
-    await store.ChangeCustomerStatus(CustomerDetails.value.id, statusData);
+    await store.ChangeCustomerStatus(CustomerDetails.value.id || CustomerDetails.value._id, statusData);
     showStatusDialog.value = false;
     statusReason.value = "";
   } catch (error) {
@@ -213,24 +247,34 @@ const getStatusButtonColor = () => {
             item-title="name"
             item-value="id"
             v-model="CustomerDetails.countryId"
+            @update:model-value="onCountryChange"
             class="mx-2"
             :rules="[requiredValidator]"
           />
         </VCol>
         <VCol cols="12" md="6">
           <label>المدينة <span class="text-error">*</span></label>
-          <AppTextField
+          <VAutocomplete
+            :items="CitiesList"
+            item-title="name"
+            item-value="id"
             v-model="CustomerDetails.cityId"
+            @update:model-value="onCityChange"
             class="mx-2"
             :rules="[requiredValidator]"
+            :disabled="!CustomerDetails.countryId"
           />
         </VCol>
         <VCol cols="12" md="6">
           <label>المنطقة <span class="text-error">*</span></label>
-          <AppTextField
+          <VAutocomplete
+            :items="RegionsList"
+            item-title="name"
+            item-value="id"
             v-model="CustomerDetails.regionId"
             class="mx-2"
             :rules="[requiredValidator]"
+            :disabled="!CustomerDetails.cityId"
           />
         </VCol>
         <VCol cols="12" md="6">

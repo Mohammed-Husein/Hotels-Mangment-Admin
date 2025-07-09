@@ -53,36 +53,54 @@ export const useErrorHandler = () => {
 
   const handleApiError = (error: any, operation: string) => {
     const statusCode = error?.response?.status;
+    const errorData = error?.response?.data;
     let message = 'حدث خطأ في الخادم';
+
+    // Handle new validation error format: {status: "fail", message: "...", errors: [...]}
+    if (errorData?.status === "fail" && errorData?.errors && Array.isArray(errorData.errors)) {
+      if (errorData.message) {
+        message = errorData.message;
+      } else {
+        message = 'خطأ في البيانات المدخلة';
+      }
+
+      // Log detailed errors for debugging
+      console.log('Validation errors:', errorData.errors);
+
+      return handleError(error, operation, {
+        fallbackMessage: message,
+        validationErrors: errorData.errors
+      });
+    }
 
     switch (statusCode) {
       case 400:
-        message = 'البيانات المرسلة غير صحيحة';
+        message = errorData?.message || 'البيانات المرسلة غير صحيحة';
         break;
       case 401:
-        message = 'غير مصرح لك بالوصول';
+        message = errorData?.message || 'غير مصرح لك بالوصول';
         break;
       case 403:
-        message = 'ليس لديك صلاحية لتنفيذ هذه العملية';
+        message = errorData?.message || 'ليس لديك صلاحية لتنفيذ هذه العملية';
         break;
       case 404:
-        message = 'العنصر المطلوب غير موجود';
+        message = errorData?.message || 'العنصر المطلوب غير موجود';
         break;
       case 409:
-        message = 'البيانات موجودة مسبقاً';
+        message = errorData?.message || 'البيانات موجودة مسبقاً';
         break;
       case 422:
-        message = 'البيانات المدخلة غير صالحة';
+        message = errorData?.message || 'البيانات المدخلة غير صالحة';
         break;
       case 500:
-        message = 'خطأ في الخادم الداخلي';
+        message = errorData?.message || 'خطأ في الخادم الداخلي';
         break;
       case 503:
-        message = 'الخدمة غير متاحة حالياً';
+        message = errorData?.message || 'الخدمة غير متاحة حالياً';
         break;
       default:
-        if (error?.response?.data?.message) {
-          message = error.response.data.message;
+        if (errorData?.message) {
+          message = errorData.message;
         }
     }
 

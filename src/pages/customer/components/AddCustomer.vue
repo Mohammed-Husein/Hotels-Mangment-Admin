@@ -2,7 +2,7 @@
 import { CountryList, DefaultCountry } from "@/composables/countryList";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
 import { useCustomerStore } from "../Customer";
@@ -13,8 +13,12 @@ import type { AddCustomerDto } from "../api/dto";
 const CustomerForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
 const settingStore = useSettingStore();
-settingStore.GetAllCountryNames();
 const { CountryNameList } = storeToRefs(settingStore);
+
+// Load countries on component mount
+onMounted(async () => {
+  await settingStore.GetAllCountryNames();
+});
 const AddDto = ref<AddCustomerDto>({
   firstName: "",
   lastName: "",
@@ -32,6 +36,24 @@ const AddDto = ref<AddCustomerDto>({
 const results = ref();
 const toast = useToast();
 const store = useCustomerStore();
+const { CitiesList, RegionsList } = storeToRefs(store);
+
+// Watch for country change to load cities
+const onCountryChange = (countryId: string) => {
+  if (countryId) {
+    store.GetCitiesByCountry(countryId);
+    AddDto.value.cityId = ""; // Reset city selection
+    AddDto.value.regionId = ""; // Reset region selection
+  }
+};
+
+// Watch for city change to load regions
+const onCityChange = (cityId: string) => {
+  if (cityId) {
+    store.GetRegionsByCity(cityId);
+    AddDto.value.regionId = ""; // Reset region selection
+  }
+};
 
 const save = async () => {
   if (!CustomerForm.value) {
@@ -66,10 +88,14 @@ const save = async () => {
         detailedAddress: AddDto.value.detailedAddress,
         preferredLanguage: AddDto.value.preferredLanguage,
       };
-      await store.AddCustomer(customerData);
-      router.go(-1);
-    } catch (error) {
+
+      const response = await store.AddCustomer(customerData);
+      if (response && response.success !== false) {
+        router.go(-1);
+      }
+    } catch (error: any) {
       console.error("Failed to save Customer:", error);
+      // Error handling is done in useApi, no need to show additional messages here
     } finally {
       AddLoading.value = false;
     }
@@ -215,24 +241,34 @@ const save = async () => {
             item-title="name"
             item-value="id"
             v-model="AddDto.countryId"
+            @update:model-value="onCountryChange"
             class="mx-2"
             :rules="[requiredValidator]"
           />
         </VCol>
         <VCol cols="12" md="6">
           <label> المدينة <span class="text-error">*</span></label>
-          <AppTextField
+          <VAutocomplete
+            :items="CitiesList"
+            item-title="name"
+            item-value="id"
             v-model="AddDto.cityId"
+            @update:model-value="onCityChange"
             class="mx-2"
             :rules="[requiredValidator]"
+            :disabled="!AddDto.countryId"
           />
         </VCol>
         <VCol cols="12" md="6">
           <label> المنطقة <span class="text-error">*</span></label>
-          <AppTextField
+          <VAutocomplete
+            :items="RegionsList"
+            item-title="name"
+            item-value="id"
             v-model="AddDto.regionId"
             class="mx-2"
             :rules="[requiredValidator]"
+            :disabled="!AddDto.cityId"
           />
         </VCol>
         <VCol cols="12" md="6">

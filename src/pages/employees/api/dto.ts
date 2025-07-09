@@ -45,6 +45,8 @@ export class AddEmployeeDto {
   confirmPassword = "";
   role = "";
   countryId = "";
+  cityId = "";
+  regionId = "";
   status = "Active";
   permissions: string[] = [];
   notes = "";
@@ -59,6 +61,10 @@ export class DetailsEmployeeDto {
   phoneNumber = "";
   countryId = "";
   countryName = "";
+  cityId = "";
+  cityName = "";
+  regionId = "";
+  regionName = "";
   imageUrl = "";
   role = "";
   roleName = "";
@@ -83,6 +89,8 @@ export class ModifyEmployeeDto {
   phoneNumber = "";
   role = "";
   countryId = "";
+  cityId = "";
+  regionId = "";
   status = "Active";
   permissions: string[] = [];
   notes = "";

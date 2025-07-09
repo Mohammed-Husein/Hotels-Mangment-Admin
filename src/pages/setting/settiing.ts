@@ -82,7 +82,7 @@ export const useSettingStore = defineStore("Setting", () => {
   }
   const CountryNameList = ref([]);
   async function GetAllCountryNames() {
-    const response = GET("countries/names", {}, {}, {});
+    const response = await GET<any>("countries/names", {}, {}, {});
     CountryNameList.value = response.data?.data.countries || [];
     return response.data?.data.countries || [];
   }

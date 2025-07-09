@@ -21,6 +21,8 @@ export const useCustomerStore = defineStore("Customer", () => {
   const CustomerDetails = ref<DetailsCustomerDto>({
     ...new DetailsCustomerDto(),
   });
+  const CitiesList = ref([]);
+  const RegionsList = ref([]);
 
   // Get All Customer
   async function GetAllCustomer(Filters: CustomersFiltersDto) {
@@ -49,6 +51,32 @@ export const useCustomerStore = defineStore("Customer", () => {
     CustomerNames.value = response.data;
   }
 
+  // Get Cities by Country
+  async function GetCitiesByCountry(countryId: string) {
+    const response = await GET<any>(
+      "regions/cities",
+      { countryId },
+      {},
+      {}
+    );
+
+    CitiesList.value = response.data?.data.cities || [];
+    return response.data?.data.cities || [];
+  }
+
+  // Get Regions by City
+  async function GetRegionsByCity(cityId: string) {
+    const response = await GET<any>(
+      "regions/names",
+      { governorateId: cityId },
+      {},
+      {}
+    );
+
+    RegionsList.value = response.data?.data.regions || [];
+    return response.data?.data.regions || [];
+  }
+
   // Add Customer
   async function AddCustomer(payload: AddCustomerDto) {
     const response = await POST(
@@ -68,11 +96,13 @@ export const useCustomerStore = defineStore("Customer", () => {
 
   // GetDetails Customer
   async function GetDetailsCustomer(id: string) {
-    const response = await GET<DetailsCustomerDto>(
-      `${CUSTOMER_API.GetById}?id=${id}`
+    const response = await GET<any>(
+      `${CUSTOMER_API.GetById}/${id}`
     );
 
-    CustomerDetails.value = response.data;
+    if (response.data && response.data.data && response.data.data.user) {
+      CustomerDetails.value = response.data.data.user;
+    }
   }
 
   // Modify Customer
@@ -151,5 +181,9 @@ export const useCustomerStore = defineStore("Customer", () => {
     DeleteCustomer,
     GetAllCustomerName,
     CustomerNames,
+    GetCitiesByCountry,
+    GetRegionsByCity,
+    CitiesList,
+    RegionsList,
   };
 });

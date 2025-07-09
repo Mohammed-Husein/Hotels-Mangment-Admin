@@ -50,6 +50,7 @@ export class AddCustomerDto {
 
 export class DetailsCustomerDto {
   id = "";
+  _id = "";
   number = 0;
   firstName = "";
   lastName = "";
@@ -68,6 +69,11 @@ export class DetailsCustomerDto {
   updatedAt = "";
   fullName = "";
   countryName = "";
+  cityName = "";
+  regionName = "";
+  emailVerified = false;
+  refreshTokens: any[] = [];
+  __v = 0;
 }
 
 export class ModifyCustomerDto {

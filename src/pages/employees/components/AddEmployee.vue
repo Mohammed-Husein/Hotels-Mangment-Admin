@@ -2,7 +2,7 @@
 import { CountryList, DefaultCountry } from "@/composables/countryList";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
 import { useEmployeeStore } from "../employee";
@@ -13,8 +13,12 @@ import type { AddEmployeeDto } from "../api/dto";
 const EmployeeForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
 const settingStore = useSettingStore();
-settingStore.GetAllCountryNames();
 const { CountryNameList } = storeToRefs(settingStore);
+
+// Load countries on component mount
+onMounted(async () => {
+  await settingStore.GetAllCountryNames();
+});
 
 const AddDto = ref<AddEmployeeDto>({
   fullName: "",
@@ -24,6 +28,8 @@ const AddDto = ref<AddEmployeeDto>({
   confirmPassword: "",
   role: "",
   countryId: "",
+  cityId: "",
+  regionId: "",
   status: "Active",
   permissions: [],
   notes: "",
@@ -33,6 +39,7 @@ const AddDto = ref<AddEmployeeDto>({
 const results = ref();
 const toast = useToast();
 const store = useEmployeeStore();
+const { CitiesList, RegionsList } = storeToRefs(store);
 
 // Employee roles
 const employeeRoles = [
@@ -42,6 +49,23 @@ const employeeRoles = [
   { title: "موظف استقبال", value: "Receptionist" },
   { title: "مشرف", value: "Supervisor" },
 ];
+
+// Watch for country change to load cities
+const onCountryChange = (countryId: string) => {
+  if (countryId) {
+    store.GetCitiesByCountry(countryId);
+    AddDto.value.cityId = ""; // Reset city selection
+    AddDto.value.regionId = ""; // Reset region selection
+  }
+};
+
+// Watch for city change to load regions
+const onCityChange = (cityId: string) => {
+  if (cityId) {
+    store.GetRegionsByCity(cityId);
+    AddDto.value.regionId = ""; // Reset region selection
+  }
+};
 
 const save = async () => {
   if (!EmployeeForm.value) {
@@ -76,15 +100,21 @@ const save = async () => {
         confirmPassword: AddDto.value.confirmPassword,
         role: AddDto.value.role,
         countryId: AddDto.value.countryId,
+        cityId: AddDto.value.cityId,
+        regionId: AddDto.value.regionId,
         status: AddDto.value.status,
         permissions: AddDto.value.permissions,
         notes: AddDto.value.notes,
         deviceToken: AddDto.value.deviceToken,
       };
-      await store.AddEmployee(employeeData);
-      router.go(-1);
-    } catch (error) {
+
+      const response = await store.AddEmployee(employeeData);
+      if (response && response.success !== false) {
+        router.go(-1);
+      }
+    } catch (error: any) {
       console.error("Failed to save Employee:", error);
+      // Error handling is done in useApi, no need to show additional messages here
     } finally {
       AddLoading.value = false;
     }
@@ -183,8 +213,34 @@ const save = async () => {
             item-title="name"
             item-value="id"
             v-model="AddDto.countryId"
+            @update:model-value="onCountryChange"
             class="mx-2"
             :rules="[requiredValidator]"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
+          <label>المدينة <span class="text-error">*</span></label>
+          <VAutocomplete
+            :items="CitiesList"
+            item-title="name"
+            item-value="id"
+            v-model="AddDto.cityId"
+            @update:model-value="onCityChange"
+            class="mx-2"
+            :rules="[requiredValidator]"
+            :disabled="!AddDto.countryId"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
+          <label>المنطقة <span class="text-error">*</span></label>
+          <VAutocomplete
+            :items="RegionsList"
+            item-title="name"
+            item-value="id"
+            v-model="AddDto.regionId"
+            class="mx-2"
+            :rules="[requiredValidator]"
+            :disabled="!AddDto.cityId"
           />
         </VCol>
         <VCol cols="12" md="6">

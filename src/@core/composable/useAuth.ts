@@ -62,12 +62,31 @@ export const useAuth = (config: useAuthconfig = authConfig) => {
 
         return response;
       }
-    } catch (error) {
-      // const result = HandleLoginError(er as AxiosError, payload);
+    } catch (error: any) {
+      console.log("Login Error:", error);
 
-      console.log("CATCH", error);
+      // Handle specific login errors
+      if (error?.response?.data) {
+        const errorData = error.response.data;
+
+        // Handle validation errors format: {status: "fail", message: "...", errors: [...]}
+        if (errorData.status === "fail" && errorData.errors && Array.isArray(errorData.errors)) {
+          // Don't show individual field errors for login, just the main message
+          if (errorData.message) {
+            toast.error(errorData.message, { timeout: 8000 });
+          } else {
+            toast.error("خطأ في بيانات تسجيل الدخول", { timeout: 8000 });
+          }
+        } else if (errorData.message) {
+          toast.error(errorData.message, { timeout: 8000 });
+        } else {
+          toast.error("فشل في تسجيل الدخول، يرجى التحقق من البيانات", { timeout: 8000 });
+        }
+      } else {
+        toast.error("خطأ في الاتصال، يرجى المحاولة مرة أخرى", { timeout: 8000 });
+      }
+
       throw error;
-      // toast.error(result);
     }
   }
 

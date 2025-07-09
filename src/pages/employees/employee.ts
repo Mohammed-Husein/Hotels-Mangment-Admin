@@ -16,6 +16,8 @@ export const useEmployeeStore = defineStore("Employees", () => {
   const EmployeeDetails = ref<DetailsEmployeeDto>({
     ...new DetailsEmployeeDto(),
   });
+  const CitiesList = ref([]);
+  const RegionsList = ref([]);
   const paginationEmployee = createPagination();
   // Get All Employees
   async function GetAllEmployees(Filters: FilterEmployeeDto) {
@@ -46,6 +48,32 @@ export const useEmployeeStore = defineStore("Employees", () => {
     EmployeeNames.value = response.data;
   }
 
+  // Get Cities by Country
+  async function GetCitiesByCountry(countryId: string) {
+    const response = await GET<any>(
+      "regions/cities",
+      { countryId },
+      {},
+      {}
+    );
+
+    CitiesList.value = response.data?.data.cities || [];
+    return response.data?.data.cities || [];
+  }
+
+  // Get Regions by City
+  async function GetRegionsByCity(cityId: string) {
+    const response = await GET<any>(
+      "regions/names",
+      { governorateId: cityId },
+      {},
+      {}
+    );
+
+    RegionsList.value = response.data?.data.regions || [];
+    return response.data?.data.regions || [];
+  }
+
   // Add Employee
   async function AddEmployee(payload: AddEmployeeDto) {
     const response = await POST(
@@ -65,11 +93,13 @@ export const useEmployeeStore = defineStore("Employees", () => {
 
   // Get Details Employee
   async function GetDetailsEmployee(id: string) {
-    const response = await GET<DetailsEmployeeDto>(
+    const response = await GET<any>(
       `${EMPLOYEE_API.GetById}/${id}`
     );
 
-    EmployeeDetails.value = response.data;
+    if (response.data && response.data.data && response.data.data.employee) {
+      EmployeeDetails.value = response.data.data.employee;
+    }
   }
 
   // Modify Employee
@@ -145,5 +175,9 @@ export const useEmployeeStore = defineStore("Employees", () => {
     DeleteEmployee,
     GetAllEmployeeNames,
     EmployeeNames,
+    GetCitiesByCountry,
+    GetRegionsByCity,
+    CitiesList,
+    RegionsList,
   };
 });

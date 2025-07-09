@@ -8,6 +8,7 @@ import { useSettingStore } from "@/pages/setting/settiing";
 import { storeToRefs } from "pinia";
 import { requiredValidator } from "@/@core/utils/validators";
 import type { ChangeEmployeeStatusDto } from "./api/dto";
+import { onMounted, watch } from "vue";
 
 const store = useEmployeeStore();
 const route = useRoute();
@@ -20,11 +21,27 @@ const showStatusDialog = ref(false);
 const statusReason = ref("");
 
 const settingStore = useSettingStore();
-settingStore.GetAllCountryNames();
 const { CountryNameList } = storeToRefs(settingStore);
-const { EmployeeDetails } = storeToRefs(store);
+const { EmployeeDetails, CitiesList, RegionsList } = storeToRefs(store);
 
-store.GetDetailsEmployee(route.params.id as string);
+// Load employee details and countries
+onMounted(async () => {
+  await settingStore.GetAllCountryNames();
+  await store.GetDetailsEmployee(route.params.id as string);
+});
+
+// Load cities and regions when employee details are loaded
+watch(() => EmployeeDetails.value.countryId, (newCountryId) => {
+  if (newCountryId) {
+    store.GetCitiesByCountry(newCountryId);
+  }
+});
+
+watch(() => EmployeeDetails.value.cityId, (newCityId) => {
+  if (newCityId) {
+    store.GetRegionsByCity(newCityId);
+  }
+});
 
 // Employee roles
 const employeeRoles = [
@@ -34,6 +51,23 @@ const employeeRoles = [
   { title: "موظف استقبال", value: "Receptionist" },
   { title: "مشرف", value: "Supervisor" },
 ];
+
+// Watch for country change to load cities
+const onCountryChange = (countryId: string) => {
+  if (countryId) {
+    store.GetCitiesByCountry(countryId);
+    EmployeeDetails.value.cityId = ""; // Reset city selection
+    EmployeeDetails.value.regionId = ""; // Reset region selection
+  }
+};
+
+// Watch for city change to load regions
+const onCityChange = (cityId: string) => {
+  if (cityId) {
+    store.GetRegionsByCity(cityId);
+    EmployeeDetails.value.regionId = ""; // Reset region selection
+  }
+};
 
 const modifyBtn = async () => {
   if (!EmployeeForm.value) {
@@ -61,6 +95,8 @@ const modifyBtn = async () => {
       phoneNumber: EmployeeDetails.value.phoneNumber,
       role: EmployeeDetails.value.role,
       countryId: EmployeeDetails.value.countryId,
+      cityId: EmployeeDetails.value.cityId,
+      regionId: EmployeeDetails.value.regionId,
       status: EmployeeDetails.value.status,
       permissions: EmployeeDetails.value.permissions,
       notes: EmployeeDetails.value.notes,
@@ -273,8 +309,34 @@ const getStatusText = () => {
             item-title="name"
             item-value="id"
             v-model="EmployeeDetails.countryId"
+            @update:model-value="onCountryChange"
             class="mx-2"
             :rules="[requiredValidator]"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
+          <label>المدينة <span class="text-error">*</span></label>
+          <VAutocomplete
+            :items="CitiesList"
+            item-title="name"
+            item-value="id"
+            v-model="EmployeeDetails.cityId"
+            @update:model-value="onCityChange"
+            class="mx-2"
+            :rules="[requiredValidator]"
+            :disabled="!EmployeeDetails.countryId"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
+          <label>المنطقة <span class="text-error">*</span></label>
+          <VAutocomplete
+            :items="RegionsList"
+            item-title="name"
+            item-value="id"
+            v-model="EmployeeDetails.regionId"
+            class="mx-2"
+            :rules="[requiredValidator]"
+            :disabled="!EmployeeDetails.cityId"
           />
         </VCol>
         <VCol cols="12" md="6">

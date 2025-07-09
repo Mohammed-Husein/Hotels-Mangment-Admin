@@ -58,14 +58,28 @@ export const useApi = () => {
     if (typeof notifications == "boolean" && response) {
       console.log("Error Handler Catch", response);
       if (response.data) {
-        //server error -> 500
-        for (const key in response.data) {
-          console.log(key, response.data[key]);
-          if (key == "message")
-            toast.error(response.data[key], { timeout: 10000 });
+        // Handle validation errors with new format: {status: "fail", message: "...", errors: [...]}
+        if (response.data.status === "fail" && response.data.errors && Array.isArray(response.data.errors)) {
+          // Show main error message
+          if (response.data.message) {
+            toast.error(response.data.message, { timeout: 8000 });
+          }
+
+          // Show individual field errors
+          response.data.errors.forEach((error: any) => {
+            if (error.field && error.message) {
+              toast.error(`${getFieldDisplayName(error.field)}: ${error.message}`, {
+                timeout: 10000,
+                position: "top-right"
+              });
+            } else if (typeof error === 'string') {
+              toast.error(error, { timeout: 8000 });
+            }
+          });
+          return;
         }
 
-        //Validation Error -> 400
+        // Handle old validation error format
         if (response.data.errors) {
           for (const key in response.data.errors) {
             if (
@@ -84,18 +98,49 @@ export const useApi = () => {
             }
           }
         }
+
+        // Handle server errors
+        if (response.data.message && !response.data.errors) {
+          toast.error(response.data.message, { timeout: 10000 });
+        }
       } else if (response.message) {
         toast.error(response.message);
       } else if (response.statusText) {
         toast.error(response.statusText);
       } else if (response.status == 401) {
-        toast.warning("You must be logged in! Please login first");
+        toast.warning("يجب عليك تسجيل الدخول أولاً");
       } else {
-        toast.error("Unknown Error, Please report to system admin.");
+        toast.error("خطأ غير معروف، يرجى الإبلاغ عن المشكلة لمدير النظام.");
       }
     } else if (typeof notifications == "string") {
       toast.error(notifications);
     }
+  };
+
+  // Helper function to get display names for fields in Arabic
+  const getFieldDisplayName = (fieldName: string): string => {
+    const fieldNames: Record<string, string> = {
+      'password': 'كلمة المرور',
+      'email': 'البريد الإلكتروني',
+      'phoneNumber': 'رقم الهاتف',
+      'fullName': 'الاسم الكامل',
+      'firstName': 'الاسم الأول',
+      'lastName': 'الاسم الثاني',
+      'countryId': 'البلد',
+      'cityId': 'المدينة',
+      'regionId': 'المنطقة',
+      'role': 'الدور الوظيفي',
+      'confirmPassword': 'تأكيد كلمة المرور',
+      'alternatePhoneNumber': 'رقم الهاتف البديل',
+      'preferredLanguage': 'اللغة المفضلة',
+      'detailedAddress': 'العنوان التفصيلي',
+      'deviceToken': 'رمز الجهاز',
+      'notes': 'الملاحظات',
+      'permissions': 'الصلاحيات',
+      'status': 'الحالة'
+    };
+
+    return fieldNames[fieldName] || fieldName;
   };
 
   const GET = async <T>(
