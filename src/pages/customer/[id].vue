@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { CountryList, DefaultCountry } from "@/composables/countryList";
-import { router } from "@/plugins/1.router";
-import { VForm } from "vuetify/lib/components/index.mjs";
-import { useCustomerStore } from "./Customer";
-import { useToast } from "vue-toastification";
-import { useSettingStore } from "@/pages/setting/settiing";
-import { storeToRefs } from "pinia";
 import { requiredValidator } from "@/@core/utils/validators";
-import type { ChangeCustomerStatusDto } from "./api/dto";
+import { CountryList, DefaultCountry } from "@/composables/countryList";
+import { useSettingStore } from "@/pages/setting/settiing";
+import { router } from "@/plugins/1.router";
+import { storeToRefs } from "pinia";
 import { onMounted, watch } from "vue";
+import { useToast } from "vue-toastification";
+import { VForm } from "vuetify/lib/components/index.mjs";
+import type { ChangeCustomerStatusDto } from "./api/dto";
+import { useCustomerStore } from "./Customer";
 
 const store = useCustomerStore();
 const route = useRoute();
@@ -53,17 +53,23 @@ onMounted(async () => {
 });
 
 // Load cities and regions when customer details are loaded
-watch(() => CustomerDetails.value.countryId, (newCountryId) => {
-  if (newCountryId) {
-    store.GetCitiesByCountry(newCountryId);
+watch(
+  () => CustomerDetails.value.countryId,
+  (newCountryId) => {
+    if (newCountryId) {
+      store.GetCitiesByCountry(newCountryId);
+    }
   }
-});
+);
 
-watch(() => CustomerDetails.value.cityId, (newCityId) => {
-  if (newCityId) {
-    store.GetRegionsByCity(newCityId);
+watch(
+  () => CustomerDetails.value.cityId,
+  (newCityId) => {
+    if (newCityId) {
+      store.GetRegionsByCity(newCityId);
+    }
   }
-});
+);
 
 // Watch for country change to load cities
 const onCountryChange = (countryId: string) => {
@@ -137,7 +143,8 @@ const passwordValidator = (value: string) => {
 
 const confirmPasswordValidator = (value: string) => {
   if (!value) return "تأكيد كلمة السر مطلوب";
-  if (value !== passwordData.value.newPassword) return "تأكيد كلمة السر غير متطابق";
+  if (value !== passwordData.value.newPassword)
+    return "تأكيد كلمة السر غير متطابق";
   return true;
 };
 
@@ -191,13 +198,17 @@ const confirmStatusChange = async () => {
 
   StatusLoading.value = true;
   try {
-    const newStatus = CustomerDetails.value.status === "Active" ? "Suspended" : "Active";
+    const newStatus =
+      CustomerDetails.value.status === "Active" ? "Suspended" : "Active";
     const statusData: ChangeCustomerStatusDto = {
       status: newStatus,
       reason: statusReason.value.trim(),
     };
 
-    await store.ChangeCustomerStatus(CustomerDetails.value.id || CustomerDetails.value._id, statusData);
+    await store.ChangeCustomerStatus(
+      CustomerDetails.value.id || CustomerDetails.value._id,
+      statusData
+    );
     showStatusDialog.value = false;
     statusReason.value = "";
   } catch (error) {
@@ -208,7 +219,9 @@ const confirmStatusChange = async () => {
 };
 
 const getStatusButtonText = () => {
-  return CustomerDetails.value.status === "Active" ? "حظر العميل" : "إلغاء الحظر";
+  return CustomerDetails.value.status === "Active"
+    ? "حظر العميل"
+    : "إلغاء الحظر";
 };
 
 const getStatusButtonColor = () => {
@@ -218,12 +231,12 @@ const getStatusButtonColor = () => {
 
 <template>
   <!-- Loading State -->
-  <div v-if="pageLoading" class="d-flex justify-center align-center" style="min-height: 400px;">
-    <VProgressCircular
-      indeterminate
-      size="64"
-      color="primary"
-    />
+  <div
+    v-if="pageLoading"
+    class="d-flex justify-center align-center"
+    style="min-height: 400px"
+  >
+    <VProgressCircular indeterminate size="64" color="primary" />
   </div>
 
   <!-- Main Content -->
@@ -237,11 +250,23 @@ const getStatusButtonColor = () => {
         </h4>
       </div>
       <VChip
-        :color="CustomerDetails.status === 'Active' ? 'success' : CustomerDetails.status === 'Suspended' ? 'warning' : 'error'"
+        :color="
+          CustomerDetails.status === 'Active'
+            ? 'success'
+            : CustomerDetails.status === 'Suspended'
+            ? 'warning'
+            : 'error'
+        "
         variant="tonal"
         size="small"
       >
-        {{ CustomerDetails.status === 'Active' ? 'نشط' : CustomerDetails.status === 'Suspended' ? 'محظور' : 'غير نشط' }}
+        {{
+          CustomerDetails.status === "Active"
+            ? "نشط"
+            : CustomerDetails.status === "Suspended"
+            ? "محظور"
+            : "غير نشط"
+        }}
       </VChip>
     </div>
 
@@ -277,7 +302,9 @@ const getStatusButtonColor = () => {
                   />
                 </VCol>
                 <VCol cols="12" md="6">
-                  <label>اسم العميل الأول <span class="text-error">*</span></label>
+                  <label
+                    >اسم العميل الأول <span class="text-error">*</span></label
+                  >
                   <AppTextField
                     v-model="CustomerDetails.firstName"
                     class="mx-2"
@@ -285,7 +312,9 @@ const getStatusButtonColor = () => {
                   />
                 </VCol>
                 <VCol cols="12" md="6">
-                  <label>اسم العميل الثاني <span class="text-error">*</span></label>
+                  <label
+                    >اسم العميل الثاني <span class="text-error">*</span></label
+                  >
                   <AppTextField
                     v-model="CustomerDetails.lastName"
                     class="mx-2"
@@ -293,7 +322,9 @@ const getStatusButtonColor = () => {
                   />
                 </VCol>
                 <VCol cols="12" md="6">
-                  <label>البريد الالكتروني <span class="text-error">*</span></label>
+                  <label
+                    >البريد الالكتروني <span class="text-error">*</span></label
+                  >
                   <AppTextField
                     v-model="CustomerDetails.email"
                     class="mx-2"
@@ -302,7 +333,9 @@ const getStatusButtonColor = () => {
                 </VCol>
                 <VCol cols="12" md="6">
                   <div style="margin-right: 10px">
-                    <label class="">رقم الهاتف <span class="text-error">*</span></label>
+                    <label class=""
+                      >رقم الهاتف <span class="text-error">*</span></label
+                    >
                     <div class="w-full md:w-[75%]">
                       <div dir="ltr">
                         <MazPhoneNumberInput
@@ -386,7 +419,7 @@ const getStatusButtonColor = () => {
                     v-model="CustomerDetails.preferredLanguage"
                     :items="[
                       { title: 'العربية', value: 'Arabic' },
-                      { title: 'English', value: 'English' }
+                      { title: 'English', value: 'English' },
                     ]"
                     item-title="title"
                     item-value="value"
@@ -400,7 +433,7 @@ const getStatusButtonColor = () => {
                     :items="[
                       { title: 'نشط', value: 'Active' },
                       { title: 'غير نشط', value: 'Inactive' },
-                      { title: 'محظور', value: 'Suspended' }
+                      { title: 'محظور', value: 'Suspended' },
                     ]"
                     item-title="title"
                     item-value="value"
@@ -410,7 +443,10 @@ const getStatusButtonColor = () => {
                 </VCol>
                 <VCol cols="12" md="12">
                   <label>العنوان التفصيلي ان وجد</label>
-                  <VTextarea v-model="CustomerDetails.detailedAddress" class="mx-2" />
+                  <VTextarea
+                    v-model="CustomerDetails.detailedAddress"
+                    class="mx-2"
+                  />
                 </VCol>
               </VRow>
             </VCardText>
@@ -427,7 +463,9 @@ const getStatusButtonColor = () => {
 
               <VRow class="mb-5 mt-7">
                 <VCol cols="12" md="6">
-                  <label>كلمة السر الجديدة <span class="text-error">*</span></label>
+                  <label
+                    >كلمة السر الجديدة <span class="text-error">*</span></label
+                  >
                   <AppTextField
                     v-model="passwordData.newPassword"
                     :type="showNewPassword ? 'text' : 'password'"
@@ -437,16 +475,20 @@ const getStatusButtonColor = () => {
                   >
                     <template #append-inner>
                       <VIcon
-                        :icon="showNewPassword ? 'tabler-eye-off' : 'tabler-eye'"
+                        :icon="
+                          showNewPassword ? 'tabler-eye-off' : 'tabler-eye'
+                        "
                         @click="showNewPassword = !showNewPassword"
-                        style="cursor: pointer;"
+                        style="cursor: pointer"
                       />
                     </template>
                   </AppTextField>
                 </VCol>
 
                 <VCol cols="12" md="6">
-                  <label>تأكيد كلمة السر <span class="text-error">*</span></label>
+                  <label
+                    >تأكيد كلمة السر <span class="text-error">*</span></label
+                  >
                   <AppTextField
                     v-model="passwordData.confirmPassword"
                     :type="showConfirmPassword ? 'text' : 'password'"
@@ -456,22 +498,21 @@ const getStatusButtonColor = () => {
                   >
                     <template #append-inner>
                       <VIcon
-                        :icon="showConfirmPassword ? 'tabler-eye-off' : 'tabler-eye'"
+                        :icon="
+                          showConfirmPassword ? 'tabler-eye-off' : 'tabler-eye'
+                        "
                         @click="showConfirmPassword = !showConfirmPassword"
-                        style="cursor: pointer;"
+                        style="cursor: pointer"
                       />
                     </template>
                   </AppTextField>
                 </VCol>
 
                 <VCol cols="12">
-                  <VAlert
-                    type="info"
-                    variant="tonal"
-                    class="mx-2"
-                  >
+                  <VAlert type="info" variant="tonal" class="mx-2">
                     <VIcon start>tabler-info-circle</VIcon>
-                    كلمة السر يجب أن تحتوي على 6 أحرف على الأقل وتتضمن حرف كبير وحرف صغير ورقم
+                    كلمة السر يجب أن تحتوي على 6 أحرف على الأقل وتتضمن حرف كبير
+                    وحرف صغير ورقم
                   </VAlert>
                 </VCol>
               </VRow>
@@ -524,13 +565,18 @@ const getStatusButtonColor = () => {
   <VDialog v-model="showStatusDialog" max-width="500px">
     <VCard>
       <VCardTitle class="text-h5">
-        {{ CustomerDetails.status === "Active" ? "حظر العميل" : "إلغاء حظر العميل" }}
+        {{
+          CustomerDetails.status === "Active"
+            ? "حظر العميل"
+            : "إلغاء حظر العميل"
+        }}
       </VCardTitle>
       <VCardText>
         <p class="mb-4">
-          {{ CustomerDetails.status === "Active"
-            ? "هل أنت متأكد من أنك تريد حظر هذا العميل؟"
-            : "هل أنت متأكد من أنك تريد إلغاء حظر هذا العميل؟"
+          {{
+            CustomerDetails.status === "Active"
+              ? "هل أنت متأكد من أنك تريد حظر هذا العميل؟"
+              : "هل أنت متأكد من أنك تريد إلغاء حظر هذا العميل؟"
           }}
         </p>
         <VTextField

@@ -252,6 +252,9 @@ const onSortByUpdate = (sortBy: Array<{ key: string; order: string }>) => {
           <div v-if="item.status === 'Active'" class="">
             <VChip color="success "> نشط </VChip>
           </div>
+          <div v-if="item.status === 'Suspended'" class="">
+            <VChip color="error "> محظور </VChip>
+          </div>
         </template>
 
         <template #item.phoneNumber="{ item }"

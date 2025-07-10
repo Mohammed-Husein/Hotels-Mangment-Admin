@@ -1,10 +1,16 @@
 import { useApi, usePagination } from "@/composables";
-import type { AddCustomerDto, ChangeCustomerStatusDto, CustomersFiltersDto, GetAllCustomerDto, ModifyCustomerDto } from "./api/dto";
+import type {
+  AddCustomerDto,
+  ChangeCustomerStatusDto,
+  CustomersFiltersDto,
+  GetAllCustomerDto,
+  ModifyCustomerDto,
+} from "./api/dto";
 import { DetailsCustomerDto } from "./api/dto";
 import { CUSTOMER_API } from "./api/endpoint";
 
 export const useCustomerStore = defineStore("Customer", () => {
-  const { GET, POST, DELETE } = useApi();
+  const { GET, POST, DELETE, PUT } = useApi();
 
   // pagintaion
   const createPagination = (page?: number) => {
@@ -53,12 +59,7 @@ export const useCustomerStore = defineStore("Customer", () => {
 
   // Get Cities by Country
   async function GetCitiesByCountry(countryId: string) {
-    const response = await GET<any>(
-      "regions/cities",
-      { countryId },
-      {},
-      {}
-    );
+    const response = await GET<any>("regions/cities", { countryId }, {}, {});
 
     CitiesList.value = response.data?.data.cities || [];
     return response.data?.data.cities || [];
@@ -96,9 +97,7 @@ export const useCustomerStore = defineStore("Customer", () => {
 
   // GetDetails Customer
   async function GetDetailsCustomer(id: string) {
-    const response = await GET<any>(
-      `${CUSTOMER_API.GetById}/${id}`
-    );
+    const response = await GET<any>(`${CUSTOMER_API.GetById}/${id}`);
 
     if (response.data && response.data.data && response.data.data.user) {
       CustomerDetails.value = response.data.data.user;
@@ -107,11 +106,13 @@ export const useCustomerStore = defineStore("Customer", () => {
 
   // Modify Customer
   async function ModifyCustomer(payload: ModifyCustomerDto) {
-    const response = await POST(
-      CUSTOMER_API.Modify,
+    const response = await PUT(
+      `${CUSTOMER_API.Modify}/${payload.id}`,
       payload,
-      { error: true, success: "تمت العملية بنجاح" },
-      { formData: false }
+      {
+        error: true,
+        success: "تمت العملية بنجاح",
+      }
     );
 
     // Refresh the customer details and list after modification
@@ -124,7 +125,10 @@ export const useCustomerStore = defineStore("Customer", () => {
   }
 
   // Change Customer Status
-  async function ChangeCustomerStatus(userId: string, payload: ChangeCustomerStatusDto) {
+  async function ChangeCustomerStatus(
+    userId: string,
+    payload: ChangeCustomerStatusDto
+  ) {
     const response = await POST(
       `${CUSTOMER_API.ChangeStatus}/${userId}`,
       payload,
@@ -142,9 +146,12 @@ export const useCustomerStore = defineStore("Customer", () => {
   }
 
   // Change Customer Password
-  async function ChangeCustomerPassword(userId: string, payload: { newPassword: string; confirmPassword: string }) {
-    const response = await POST(
-      `${CUSTOMER_API.ChangePassword}/${userId}/password`,
+  async function ChangeCustomerPassword(
+    userId: string,
+    payload: { newPassword: string; confirmPassword: string }
+  ) {
+    const response = await PUT(
+      `${CUSTOMER_API.ChangePassword}/password/${userId}`,
       payload,
       { error: true, success: "تم تغيير كلمة السر بنجاح" },
       { formData: false }
