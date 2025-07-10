@@ -13,12 +13,14 @@ import { useEmployeeStore } from "./employee";
 const store = useEmployeeStore();
 const route = useRoute();
 const results = ref();
+const alternateResults = ref();
 const toast = useToast();
 const EmployeeForm = ref<VForm>();
 const ModifyLoading = ref(false);
 const StatusLoading = ref(false);
 const showStatusDialog = ref(false);
 const statusReason = ref("");
+const pageLoading = ref(true);
 
 const settingStore = useSettingStore();
 const { CountryNameList } = storeToRefs(settingStore);
@@ -26,8 +28,16 @@ const { EmployeeDetails, CitiesList, RegionsList } = storeToRefs(store);
 
 // Load employee details and countries
 onMounted(async () => {
-  await settingStore.GetAllCountryNames();
-  await store.GetDetailsEmployee(route.params.id as string);
+  pageLoading.value = true;
+  try {
+    await settingStore.GetAllCountryNames();
+    await store.GetDetailsEmployee(route.params.id as string);
+  } catch (error) {
+    console.error("Error loading employee details:", error);
+    toast.error("حدث خطأ في تحميل بيانات الموظف");
+  } finally {
+    pageLoading.value = false;
+  }
 });
 
 // Load cities and regions when employee details are loaded
@@ -92,6 +102,11 @@ const modifyBtn = async () => {
     return;
   }
 
+  if (alternateResults.value && alternateResults.value.isValid === false) {
+    toast.error("يجب عليك ادخال رقم هاتف بديل صالح");
+    return;
+  }
+
   ModifyLoading.value = true;
   try {
     const modifyData = {
@@ -99,6 +114,7 @@ const modifyBtn = async () => {
       fullName: EmployeeDetails.value.fullName,
       email: EmployeeDetails.value.email,
       phoneNumber: EmployeeDetails.value.phoneNumber,
+      alternatePhoneNumber: EmployeeDetails.value.alternatePhoneNumber,
       role: EmployeeDetails.value.role,
       countryId: EmployeeDetails.value.countryId,
       cityId: EmployeeDetails.value.cityId,
@@ -110,6 +126,7 @@ const modifyBtn = async () => {
     };
 
     await store.ModifyEmployee(modifyData);
+    toast.success("تم تعديل بيانات الموظف بنجاح");
     router.go(-1);
   } catch (error) {
     console.error("Failed to modify Employee:", error);
@@ -226,18 +243,29 @@ const getStatusText = () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
-    <div class="flex">
-      <h4>الموظفين</h4>
-      <h4>
-        / تعديل موظف
-        <VIcon> tabler-users </VIcon>
-      </h4>
-    </div>
-    <VChip :color="getStatusChipColor()" variant="tonal" size="small">
-      {{ getStatusText() }}
-    </VChip>
+  <!-- Loading State -->
+  <div v-if="pageLoading" class="d-flex justify-center align-center" style="min-height: 400px;">
+    <VProgressCircular
+      indeterminate
+      size="64"
+      color="primary"
+    />
   </div>
+
+  <!-- Main Content -->
+  <div v-else>
+    <div class="flex items-center justify-between">
+      <div class="flex">
+        <h4>الموظفين</h4>
+        <h4>
+          / تعديل موظف
+          <VIcon> tabler-users </VIcon>
+        </h4>
+      </div>
+      <VChip :color="getStatusChipColor()" variant="tonal" size="small">
+        {{ getStatusText() }}
+      </VChip>
+    </div>
 
   <VForm ref="EmployeeForm">
     <VCard class="mt-5">
@@ -283,6 +311,28 @@ const getStatusText = () => {
                   show-code-on-list
                   :rules="[requiredValidator]"
                   v-model="EmployeeDetails.phoneNumber"
+                  :noFlags="false"
+                  class="w-[90%] px-5"
+                  :preferred-countries="CountryList"
+                  v-model:country-code="DefaultCountry"
+                  theme="dark"
+                  size="md"
+                />
+              </div>
+            </div>
+          </div>
+        </VCol>
+        <VCol cols="12" md="6">
+          <div style="margin-right: 10px">
+            <label class="">رقم الهاتف البديل</label>
+            <div class="w-full md:w-[75%]">
+              <div dir="ltr">
+                <MazPhoneNumberInput
+                  @update="alternateResults = $event"
+                  label="رقم الهاتف البديل"
+                  :isValid="true"
+                  show-code-on-list
+                  v-model="EmployeeDetails.alternatePhoneNumber"
                   :noFlags="false"
                   class="w-[90%] px-5"
                   :preferred-countries="CountryList"
@@ -359,6 +409,15 @@ const getStatusText = () => {
           />
         </VCol>
         <VCol cols="12" md="6">
+          <label>تاريخ التوظيف</label>
+          <AppTextField
+            v-model="EmployeeDetails.hireDate"
+            class="mx-2"
+            disabled
+            :model-value="EmployeeDetails.hireDate ? new Date(EmployeeDetails.hireDate).toLocaleDateString('ar-EG') : ''"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
           <label>رمز الجهاز</label>
           <AppTextField v-model="EmployeeDetails.deviceToken" class="mx-2" />
         </VCol>
@@ -370,19 +429,24 @@ const getStatusText = () => {
     </VCard>
   </VForm>
 
-  <div class="flex justify-end mt-4 mx-2">
-    <VBtn class="mx-1" :loading="ModifyLoading" @click="modifyBtn">
-      تعديل
-    </VBtn>
-    <VBtn
-      class="mx-1"
-      :color="getStatusButtonColor()"
-      variant="tonal"
-      @click="changeStatusBtn"
-    >
-      {{ getStatusButtonText() }}
-    </VBtn>
-    <VBtn color="error" variant="tonal" @click="router.go(-1)"> إلغاء </VBtn>
+    <div class="flex justify-end mt-4 mx-2">
+      <VBtn class="mx-1" :loading="ModifyLoading" @click="modifyBtn" color="primary">
+        <VIcon start>tabler-device-floppy</VIcon>
+        تعديل
+      </VBtn>
+      <VBtn
+        class="mx-1"
+        :color="getStatusButtonColor()"
+        variant="tonal"
+        @click="changeStatusBtn"
+      >
+        {{ getStatusButtonText() }}
+      </VBtn>
+      <VBtn color="error" variant="tonal" @click="router.go(-1)">
+        <VIcon start>tabler-x</VIcon>
+        إلغاء
+      </VBtn>
+    </div>
   </div>
 
   <!-- Dialog لتأكيد تغيير الحالة -->

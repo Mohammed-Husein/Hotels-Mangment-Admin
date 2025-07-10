@@ -9,6 +9,7 @@ export class Employee {
   fullName = "";
   email = "";
   phoneNumber = "";
+  alternatePhoneNumber = "";
   countryId = "";
   countryName = "";
   imageUrl = "";
@@ -41,6 +42,7 @@ export class AddEmployeeDto {
   fullName = "";
   email = "";
   phoneNumber = "";
+  alternatePhoneNumber = "";
   password = "";
   confirmPassword = "";
   role = "";
@@ -59,6 +61,7 @@ export class DetailsEmployeeDto {
   fullName = "";
   email = "";
   phoneNumber = "";
+  alternatePhoneNumber = "";
   countryId = "";
   countryName = "";
   cityId = "";
@@ -87,6 +90,7 @@ export class ModifyEmployeeDto {
   fullName = "";
   email = "";
   phoneNumber = "";
+  alternatePhoneNumber = "";
   role = "";
   countryId = "";
   cityId = "";

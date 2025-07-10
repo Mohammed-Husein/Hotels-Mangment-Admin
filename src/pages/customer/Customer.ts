@@ -141,6 +141,18 @@ export const useCustomerStore = defineStore("Customer", () => {
     return response;
   }
 
+  // Change Customer Password
+  async function ChangeCustomerPassword(userId: string, payload: { newPassword: string; confirmPassword: string }) {
+    const response = await POST(
+      `${CUSTOMER_API.ChangePassword}/${userId}/password`,
+      payload,
+      { error: true, success: "تم تغيير كلمة السر بنجاح" },
+      { formData: false }
+    );
+
+    return response;
+  }
+
   // Delete Customer with query string and request payload
   // Delete Customer with query string and request payload
 
@@ -178,6 +190,7 @@ export const useCustomerStore = defineStore("Customer", () => {
     AddCustomer,
     ModifyCustomer,
     ChangeCustomerStatus,
+    ChangeCustomerPassword,
     DeleteCustomer,
     GetAllCustomerName,
     CustomerNames,
