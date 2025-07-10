@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import { requiredValidator } from "@/@core/utils/validators";
 import { CountryList, DefaultCountry } from "@/composables/countryList";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
-import { ref, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { onMounted, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
-import { useCustomerStore } from "../Customer";
-import { storeToRefs } from "pinia";
-import { requiredValidator } from "@/@core/utils/validators";
 import type { AddCustomerDto } from "../api/dto";
+import { useCustomerStore } from "../Customer";
 
 const CustomerForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
@@ -90,6 +90,7 @@ const save = async () => {
       };
 
       const response = await store.AddCustomer(customerData);
+      toast.success("تمت إضافة العميل بنجاح");
       if (response && response.success !== false) {
         router.go(-1);
       }
@@ -227,7 +228,7 @@ const save = async () => {
             v-model="AddDto.preferredLanguage"
             :items="[
               { title: 'العربية', value: 'Arabic' },
-              { title: 'English', value: 'English' }
+              { title: 'English', value: 'English' },
             ]"
             item-title="title"
             item-value="value"

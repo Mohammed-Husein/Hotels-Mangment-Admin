@@ -1,5 +1,11 @@
 import { useApi, usePagination } from "@/composables";
-import type { AddEmployeeDto, ChangeEmployeeStatusDto, FilterEmployeeDto, GetAllEmployee, ModifyEmployeeDto } from "./api/dto";
+import type {
+  AddEmployeeDto,
+  ChangeEmployeeStatusDto,
+  FilterEmployeeDto,
+  GetAllEmployee,
+  ModifyEmployeeDto,
+} from "./api/dto";
 import { DetailsEmployeeDto } from "./api/dto";
 import { EMPLOYEE_API } from "./api/endpoint";
 
@@ -50,12 +56,7 @@ export const useEmployeeStore = defineStore("Employees", () => {
 
   // Get Cities by Country
   async function GetCitiesByCountry(countryId: string) {
-    const response = await GET<any>(
-      "regions/cities",
-      { countryId },
-      {},
-      {}
-    );
+    const response = await GET<any>("regions/cities", { countryId }, {}, {});
 
     CitiesList.value = response.data?.data.cities || [];
     return response.data?.data.cities || [];
@@ -93,9 +94,7 @@ export const useEmployeeStore = defineStore("Employees", () => {
 
   // Get Details Employee
   async function GetDetailsEmployee(id: string) {
-    const response = await GET<any>(
-      `${EMPLOYEE_API.GetById}/${id}`
-    );
+    const response = await GET<any>(`${EMPLOYEE_API.GetById}/${id}`);
 
     if (response.data && response.data.data && response.data.data.employee) {
       EmployeeDetails.value = response.data.data.employee;
@@ -121,9 +120,9 @@ export const useEmployeeStore = defineStore("Employees", () => {
   }
 
   // Change Employee Status
-  async function ChangeEmployeeStatus(employeeId: string, payload: ChangeEmployeeStatusDto) {
+  async function ChangeEmployeeStatus(payload: ChangeEmployeeStatusDto) {
     const response = await POST(
-      `${EMPLOYEE_API.ChangeStatus}/${employeeId}/status`,
+      `${EMPLOYEE_API.ChangeStatus}/status/${payload.id}`,
       payload,
       { error: true, success: "تمت العملية بنجاح" },
       { formData: false }

@@ -2,14 +2,12 @@
 import { CountryList, DefaultCountry } from "@/composables/countryList";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
-import { ref, onMounted } from "vue";
+import { storeToRefs } from "pinia";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
-import { useEmployeeStore } from "../employee";
-import { storeToRefs } from "pinia";
-import { requiredValidator } from "@/@core/utils/validators";
 import type { AddEmployeeDto } from "../api/dto";
-
+import { useEmployeeStore } from "../employee";
+// const toast = useToast();
 const EmployeeForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
 const settingStore = useSettingStore();
@@ -78,7 +76,7 @@ const save = async () => {
     toast.error("يجب عليك إدخال الحقول المطلوبة");
     return;
   }
-  
+
   if (results.value && results.value.isValid === false) {
     toast.error("يجب عليك ادخال رقم هاتف صالح");
     return;
@@ -109,6 +107,7 @@ const save = async () => {
       };
 
       const response = await store.AddEmployee(employeeData);
+      toast.success("تمت إضافة الموظف بنجاح");
       if (response && response.success !== false) {
         router.go(-1);
       }
@@ -245,10 +244,7 @@ const save = async () => {
         </VCol>
         <VCol cols="12" md="6">
           <label>رمز الجهاز</label>
-          <AppTextField
-            v-model="AddDto.deviceToken"
-            class="mx-2"
-          />
+          <AppTextField v-model="AddDto.deviceToken" class="mx-2" />
         </VCol>
         <VCol cols="12" md="12">
           <label>ملاحظات</label>

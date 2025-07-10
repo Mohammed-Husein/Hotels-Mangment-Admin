@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { CountryList, DefaultCountry } from "@/composables/countryList";
-import { router } from "@/plugins/1.router";
-import { VForm } from "vuetify/lib/components/index.mjs";
-import { useEmployeeStore } from "./employee";
-import { useToast } from "vue-toastification";
-import { useSettingStore } from "@/pages/setting/settiing";
-import { storeToRefs } from "pinia";
 import { requiredValidator } from "@/@core/utils/validators";
-import type { ChangeEmployeeStatusDto } from "./api/dto";
+import { CountryList, DefaultCountry } from "@/composables/countryList";
+import { useSettingStore } from "@/pages/setting/settiing";
+import { router } from "@/plugins/1.router";
+import { storeToRefs } from "pinia";
 import { onMounted, watch } from "vue";
+import { useToast } from "vue-toastification";
+import { VForm } from "vuetify/lib/components/index.mjs";
+import type { ChangeEmployeeStatusDto } from "./api/dto";
+import { useEmployeeStore } from "./employee";
 
 const store = useEmployeeStore();
 const route = useRoute();
@@ -31,17 +31,23 @@ onMounted(async () => {
 });
 
 // Load cities and regions when employee details are loaded
-watch(() => EmployeeDetails.value.countryId, (newCountryId) => {
-  if (newCountryId) {
-    store.GetCitiesByCountry(newCountryId);
+watch(
+  () => EmployeeDetails.value.countryId,
+  (newCountryId) => {
+    if (newCountryId) {
+      store.GetCitiesByCountry(newCountryId);
+    }
   }
-});
+);
 
-watch(() => EmployeeDetails.value.cityId, (newCityId) => {
-  if (newCityId) {
-    store.GetRegionsByCity(newCityId);
+watch(
+  () => EmployeeDetails.value.cityId,
+  (newCityId) => {
+    if (newCityId) {
+      store.GetRegionsByCity(newCityId);
+    }
   }
-});
+);
 
 // Employee roles
 const employeeRoles = [
@@ -74,18 +80,18 @@ const modifyBtn = async () => {
     console.error("EmployeeForm is not initialized");
     return;
   }
-  
+
   const result = await EmployeeForm.value.validate();
   if (!result.valid) {
     toast.error("يجب عليك إدخال الحقول المطلوبة");
     return;
   }
-  
+
   if (results.value && results.value.isValid === false) {
     toast.error("يجب عليك ادخال رقم هاتف صالح");
     return;
   }
-  
+
   ModifyLoading.value = true;
   try {
     const modifyData = {
@@ -102,7 +108,7 @@ const modifyBtn = async () => {
       notes: EmployeeDetails.value.notes,
       deviceToken: EmployeeDetails.value.deviceToken,
     };
-    
+
     await store.ModifyEmployee(modifyData);
     router.go(-1);
   } catch (error) {
@@ -126,7 +132,7 @@ const confirmStatusChange = async () => {
   StatusLoading.value = true;
   try {
     let newStatus: "Active" | "Inactive" | "Suspended" | "OnLeave";
-    
+
     switch (EmployeeDetails.value.status) {
       case "Active":
         newStatus = "Suspended";
@@ -145,11 +151,12 @@ const confirmStatusChange = async () => {
     }
 
     const statusData: ChangeEmployeeStatusDto = {
+      id: route.params.id,
       status: newStatus,
       reason: statusReason.value.trim(),
     };
 
-    await store.ChangeEmployeeStatus(EmployeeDetails.value.id, statusData);
+    await store.ChangeEmployeeStatus(statusData);
     showStatusDialog.value = false;
     statusReason.value = "";
   } catch (error) {
@@ -227,11 +234,7 @@ const getStatusText = () => {
         <VIcon> tabler-users </VIcon>
       </h4>
     </div>
-    <VChip 
-      :color="getStatusChipColor()"
-      variant="tonal"
-      size="small"
-    >
+    <VChip :color="getStatusChipColor()" variant="tonal" size="small">
       {{ getStatusText() }}
     </VChip>
   </div>
@@ -347,7 +350,7 @@ const getStatusText = () => {
               { title: 'نشط', value: 'Active' },
               { title: 'غير نشط', value: 'Inactive' },
               { title: 'معلق', value: 'Suspended' },
-              { title: 'في إجازة', value: 'OnLeave' }
+              { title: 'في إجازة', value: 'OnLeave' },
             ]"
             item-title="title"
             item-value="value"
@@ -357,10 +360,7 @@ const getStatusText = () => {
         </VCol>
         <VCol cols="12" md="6">
           <label>رمز الجهاز</label>
-          <AppTextField
-            v-model="EmployeeDetails.deviceToken"
-            class="mx-2"
-          />
+          <AppTextField v-model="EmployeeDetails.deviceToken" class="mx-2" />
         </VCol>
         <VCol cols="12" md="12">
           <label>ملاحظات</label>
@@ -371,14 +371,16 @@ const getStatusText = () => {
   </VForm>
 
   <div class="flex justify-end mt-4 mx-2">
-    <VBtn class="mx-1" :loading="ModifyLoading" @click="modifyBtn"> تعديل </VBtn>
-    <VBtn 
-      class="mx-1" 
-      :color="getStatusButtonColor()" 
-      variant="tonal" 
+    <VBtn class="mx-1" :loading="ModifyLoading" @click="modifyBtn">
+      تعديل
+    </VBtn>
+    <VBtn
+      class="mx-1"
+      :color="getStatusButtonColor()"
+      variant="tonal"
       @click="changeStatusBtn"
-    > 
-      {{ getStatusButtonText() }} 
+    >
+      {{ getStatusButtonText() }}
     </VBtn>
     <VBtn color="error" variant="tonal" @click="router.go(-1)"> إلغاء </VBtn>
   </div>
@@ -406,8 +408,8 @@ const getStatusText = () => {
         <VBtn color="grey" variant="text" @click="showStatusDialog = false">
           إلغاء
         </VBtn>
-        <VBtn 
-          :color="getStatusButtonColor()" 
+        <VBtn
+          :color="getStatusButtonColor()"
           :loading="StatusLoading"
           @click="confirmStatusChange"
         >

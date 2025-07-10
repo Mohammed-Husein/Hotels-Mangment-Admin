@@ -100,4 +100,5 @@ export class ModifyEmployeeDto {
 export class ChangeEmployeeStatusDto {
   status: "Active" | "Inactive" | "Suspended" | "OnLeave" = "Active";
   reason?: string;
+  id?: string;
 }
