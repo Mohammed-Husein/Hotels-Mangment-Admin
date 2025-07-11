@@ -164,10 +164,10 @@ export const useCustomerStore = defineStore("Customer", () => {
   // Delete Customer with query string and request payload
 
   //////////////////////
-  async function DeleteCustomer(ids: string[], itemName: string) {
+  async function DeleteCustomer(ids: string, itemName: string) {
     await DELETE(
-      CUSTOMER_API.Delete,
-      ids,
+      `${CUSTOMER_API.Delete}/${ids}`,
+      {},
       {},
       {
         comfirm: {

@@ -138,10 +138,10 @@ export const useEmployeeStore = defineStore("Employees", () => {
   }
 
   // Delete Employee
-  async function DeleteEmployee(ids: string[], itemName: string) {
+  async function DeleteEmployee(ids: string, itemName: string) {
     await DELETE(
-      EMPLOYEE_API.Delete,
-      ids,
+      `${EMPLOYEE_API.Delete}/${ids}`,
+      {},
       {},
       {
         comfirm: {

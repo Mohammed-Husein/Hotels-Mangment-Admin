@@ -22,8 +22,13 @@ const Add = ref<AddCountry>({ ...new AddCountry() });
 // headers
 const headers = computed(() => [
   {
-    title: " اسم البلد ",
-    key: "name",
+    title: " اسم البلد (لغة عربية)",
+    key: "name.ar",
+    align: "center",
+  },
+  {
+    title: " اسم البلد (لغة إنجليزية)",
+    key: "name.en",
     align: "center",
   },
   {

@@ -4,12 +4,13 @@ import { AddPaymentMethod, filterPaymentMethodDto } from "../api/dto";
 import { usePaymentMethodStore } from "../paymentMethodStore";
 
 // إضافة الـ validator المطلوب
-
+const { getFileUrl } = useFile();
 const paymentMethodStore = usePaymentMethodStore();
 const isLoading = ref<boolean>(false);
 const { FnExcute } = useTimerFn();
 const search = ref("");
-const { paymentMethodList, paginationPaymentMethod, paymentMethodDetails } = storeToRefs(paymentMethodStore);
+const { paymentMethodList, paginationPaymentMethod, paymentMethodDetails } =
+  storeToRefs(paymentMethodStore);
 const filtersDto = ref(new filterPaymentMethodDto());
 const isUpdateOptions = ref(false);
 const dialogDelete = ref(false);
@@ -90,9 +91,11 @@ const updateOptions = (newOptions: optionsDto) => {
     };
     FnExcute(() => {
       isLoading.value = true;
-      paymentMethodStore.GetAllPaymentMethods({ ...filtersDto.value }).finally(() => {
-        isLoading.value = false;
-      });
+      paymentMethodStore
+        .GetAllPaymentMethods({ ...filtersDto.value })
+        .finally(() => {
+          isLoading.value = false;
+        });
       console.log(newOptions);
     }, 1000);
   }
@@ -107,24 +110,32 @@ const deleteItem = (item?: any) => {
   } else {
     itemsDelete.value = [item.id];
   }
-  paymentMethodStore.DeletePaymentMethod(item.id, item.name?.ar || item.name?.en).then(() => {
-    paymentMethodStore.GetAllPaymentMethods({ ...filtersDto.value }).then(() => {
-      isUpdateOptions.value = true;
+  paymentMethodStore
+    .DeletePaymentMethod(item.id, item.name?.ar || item.name?.en)
+    .then(() => {
+      paymentMethodStore
+        .GetAllPaymentMethods({ ...filtersDto.value })
+        .then(() => {
+          isUpdateOptions.value = true;
+        });
     });
-  });
 };
 
 const deleteSingleItem = (item: any) => {
   ids.value = [];
   itemsDelete.value = [item.id];
 
-  paymentMethodStore.DeletePaymentMethod(itemsDelete.value[0], item?.name?.ar || item?.name?.en).then(() => {
-    paymentMethodStore.GetAllPaymentMethods({ ...filtersDto.value }).then(() => {
-      isUpdateOptions.value = true;
-      refetch();
-      ids.value = [];
+  paymentMethodStore
+    .DeletePaymentMethod(itemsDelete.value[0], item?.name?.ar || item?.name?.en)
+    .then(() => {
+      paymentMethodStore
+        .GetAllPaymentMethods({ ...filtersDto.value })
+        .then(() => {
+          isUpdateOptions.value = true;
+          refetch();
+          ids.value = [];
+        });
     });
-  });
 };
 
 const PaymentMethodForm = ref<VForm>();
@@ -169,21 +180,6 @@ const modify = () => {
   });
 };
 
-// معالجة رفع الأيقونة
-const onIconChange = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    Add.value.icon = target.files[0];
-  }
-};
-
-const onIconChangeEdit = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files && target.files[0]) {
-    paymentMethodDetails.value.icon = target.files[0];
-  }
-};
-
 watch(
   () => options.value,
   (newOptions) => {
@@ -214,22 +210,24 @@ watch(
           </div>
         </div>
         <div class="flex justify-between items-center flex-wrap">
-          <div class="flex justify-center items-center gap-2 mb-5">
-            <!-- فلتر الحالة -->
-            <VAutocomplete
-              v-model="filtersDto.isActive"
-              clearable
-              label="الحالة"
-              :items="[
-                { title: 'فعال', value: true },
-                { title: 'غير فعال', value: false },
-              ]"
-              item-title="title"
-              item-value="value"
-              class="mx-2"
-              @update:model-value="refetch"
-            ></VAutocomplete>
-          </div>
+          <VRow>
+            <VCol cols="12" md="12">
+              <!-- فلتر الحالة -->
+              <VAutocomplete
+                v-model="filtersDto.isActive"
+                clearable
+                label="الحالة"
+                :items="[
+                  { title: 'فعال', value: true },
+                  { title: 'غير فعال', value: false },
+                ]"
+                item-title="title"
+                item-value="value"
+                class="mx-2"
+                @update:model-value="refetch"
+              ></VAutocomplete>
+            </VCol>
+          </VRow>
 
           <div class="flex justify-center items-center gap-2 mb-5">
             <VBtn
@@ -288,12 +286,16 @@ watch(
         <!-- Pagination -->
         <template #bottom>
           <VCardText class="pt-2">
-            <div class="d-flex flex-wrap justify-center justify-sm-space-between gap-y-2 mt-2">
+            <div
+              class="d-flex flex-wrap justify-center justify-sm-space-between gap-y-2 mt-2"
+            >
               <VPagination
                 v-model="paginationPaymentMethod.currentPage"
                 :total-visible="5"
                 :length="paginationPaymentMethod.totalPages"
-                @update:model-value="paymentMethodStore.GetAllPaymentMethods({ ...filtersDto })"
+                @update:model-value="
+                  paymentMethodStore.GetAllPaymentMethods({ ...filtersDto })
+                "
               />
             </div>
           </VCardText>
@@ -315,7 +317,9 @@ watch(
           <VRow>
             <!-- الاسم بالعربية -->
             <VCol cols="12" md="6">
-              <label>اسم طريقة الدفع (عربي) <span class="text-error">*</span></label>
+              <label
+                >اسم طريقة الدفع (عربي) <span class="text-error">*</span></label
+              >
               <AppTextField
                 v-model="Add.nameAr"
                 :rules="[requiredValidator]"
@@ -325,7 +329,10 @@ watch(
 
             <!-- الاسم بالإنجليزية -->
             <VCol cols="12" md="6">
-              <label>اسم طريقة الدفع (إنجليزي) <span class="text-error">*</span></label>
+              <label
+                >اسم طريقة الدفع (إنجليزي)
+                <span class="text-error">*</span></label
+              >
               <AppTextField
                 v-model="Add.nameEn"
                 :rules="[requiredValidator]"
@@ -376,23 +383,14 @@ watch(
             <!-- رفع الأيقونة -->
             <VCol cols="12" md="6">
               <label>أيقونة طريقة الدفع</label>
-              <VFileInput
-                accept="image/*"
-                label="اختر أيقونة"
-                prepend-icon="tabler-camera"
-                @change="onIconChange"
-              />
+              <FileUploader v-model="Add.icon" />
             </VCol>
           </VRow>
         </VForm>
       </VCardText>
 
       <VCardText class="w-full my-4 flex justify-center items-center gap-4">
-        <v-btn
-          :loading="AddLoading"
-          color="primary"
-          @click="save"
-        >
+        <v-btn :loading="AddLoading" color="primary" @click="save">
           إضافة
         </v-btn>
         <v-btn variant="tonal" color="error" @click="cancel">إلغاء</v-btn>
@@ -413,7 +411,9 @@ watch(
           <VRow>
             <!-- الاسم بالعربية -->
             <VCol cols="12" md="6">
-              <label>اسم طريقة الدفع (عربي) <span class="text-error">*</span></label>
+              <label
+                >اسم طريقة الدفع (عربي) <span class="text-error">*</span></label
+              >
               <AppTextField
                 v-model="paymentMethodDetails.nameAr"
                 :rules="[requiredValidator]"
@@ -423,7 +423,10 @@ watch(
 
             <!-- الاسم بالإنجليزية -->
             <VCol cols="12" md="6">
-              <label>اسم طريقة الدفع (إنجليزي) <span class="text-error">*</span></label>
+              <label
+                >اسم طريقة الدفع (إنجليزي)
+                <span class="text-error">*</span></label
+              >
               <AppTextField
                 v-model="paymentMethodDetails.nameEn"
                 :rules="[requiredValidator]"
@@ -489,9 +492,7 @@ watch(
             <!-- رفع الأيقونة -->
             <VCol cols="12" md="6">
               <label>أيقونة طريقة الدفع</label>
-          <FileUploader 
-          
-          v-model:url="paymentMethodDetails.icon"/>
+              <FileUploader v-model:url="paymentMethodDetails.icon" />
             </VCol>
           </VRow>
         </VForm>

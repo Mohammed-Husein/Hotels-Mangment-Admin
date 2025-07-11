@@ -7,13 +7,13 @@ export const useCityStore = defineStore("City", () => {
 
   const cityList = ref<GetAllCities["cities"]>([]);
   const cityDetails = ref<AddCity[]>([]);
-  
+
   // pagination
   const createPagination = (page?: number) => {
     const { pagination } = usePagination(page || 8);
     return pagination;
   };
-  
+
   const paginationCity = createPagination();
 
   // جلب جميع المدن
@@ -31,7 +31,9 @@ export const useCityStore = defineStore("City", () => {
 
     cityList.value = response.data?.data.cities || [];
     paginationCity.value.totalCount = response.data?.data.count || 0;
-    paginationCity.value.totalPages = Math.ceil((response.data?.data.count || 0) / paginationCity.value.limit);
+    paginationCity.value.totalPages = Math.ceil(
+      (response.data?.data.count || 0) / paginationCity.value.limit
+    );
   }
 
   // إضافة مدينة جديدة
@@ -49,25 +51,16 @@ export const useCityStore = defineStore("City", () => {
 
   // جلب مدينة بالمعرف
   async function GetCityById(id: string) {
-    const response = await GET<any>(
-      `${CITY_API.GetAll}/${id}`,
-      {},
-      {},
-      {}
-    );
+    const response = await GET<any>(`${CITY_API.GetAll}/${id}`, {}, {}, {});
     cityDetails.value = response.data?.data.governorate;
   }
 
   // تعديل مدينة
   async function ModifyCity(payload: any) {
-    const response = await POST(
-      CITY_API.Add,
-      payload,
-      {
-        error: true,
-        success: "تمت العملية بنجاح",
-      }
-    );
+    const response = await POST(CITY_API.Add, payload, {
+      error: true,
+      success: "تمت العملية بنجاح",
+    });
 
     cityList.value?.unshift(payload);
     return response;
@@ -95,8 +88,15 @@ export const useCityStore = defineStore("City", () => {
       (item: any) => !ids.includes(item.id)
     );
   }
-
+  const CityNameList = ref([]);
+  async function GetAllCityNames() {
+    const response = await GET<any>("governorates/names", {}, {}, {});
+    CityNameList.value = response.data?.data.governorates || [];
+    return response.data?.data.governorates || [];
+  }
   return {
+    GetAllCityNames,
+    CityNameList,
     cityList,
     paginationCity,
     GetAllCities,

@@ -123,5 +123,5 @@ export class AddPaymentMethod {
   descriptionEn: string = "";
   displayOrder: number = 0;
   isActive: boolean = true;
-  icon?: File | null = null;
+  icon: File | null | string = "";
 }

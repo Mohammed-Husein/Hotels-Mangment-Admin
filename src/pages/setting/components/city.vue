@@ -8,11 +8,12 @@ import { useSettingStore } from "../settiing";
 
 const cityStore = useCityStore();
 const countryStore = useSettingStore();
+countryStore.GetAllCountryNames();
 const isLoading = ref<boolean>(false);
 const { FnExcute } = useTimerFn();
 const search = ref("");
 const { cityList, paginationCity, cityDetails } = storeToRefs(cityStore);
-const { countryList } = storeToRefs(countryStore);
+const { CountryNameList } = storeToRefs(countryStore);
 const filtersDto = ref(new filterCityDto());
 const isUpdateOptions = ref(false);
 const dialogDelete = ref(false);
@@ -22,7 +23,12 @@ const Add = ref<AddCity>({ ...new AddCity() });
 
 // جلب قائمة الدول عند تحميل المكون
 onMounted(() => {
-  countryStore.GetAllCountry({ isActive: true, searchFields: null, SortOrder: null, SortColumn: null });
+  countryStore.GetAllCountry({
+    isActive: true,
+    searchFields: null,
+    SortOrder: null,
+    SortColumn: null,
+  });
   refetch();
 });
 
@@ -202,36 +208,37 @@ watch(
           </div>
         </div>
         <div class="flex justify-between items-center flex-wrap">
-          <div class="flex justify-center items-center gap-2 mb-5">
-            <!-- فلتر البلد -->
-            <VAutocomplete
-              v-model="filtersDto.countryId"
-              clearable
-              label="البلد"
-              :items="countryList"
-              item-title="name"
-              item-value="id"
-              class="mx-2"
-              @update:model-value="refetch"
-            ></VAutocomplete>
+          <VRow>
+            <VCol cols="12" md="6">
+              <VAutocomplete
+                v-model="filtersDto.countryId"
+                clearable
+                label="البلد"
+                :items="CountryNameList"
+                item-title="name"
+                item-value="id"
+                class="mx-2"
+                @update:model-value="refetch"
+              ></VAutocomplete
+            ></VCol>
+            <VCol cols="12" md="6">
+              <VAutocomplete
+                v-model="filtersDto.isActive"
+                clearable
+                label="الحالة"
+                :items="[
+                  { title: 'فعال', value: true },
+                  { title: 'غير فعال', value: false },
+                ]"
+                item-title="title"
+                item-value="value"
+                class="mx-2"
+                @update:model-value="refetch"
+              ></VAutocomplete
+            ></VCol>
+          </VRow>
 
-            <!-- فلتر الحالة -->
-            <VAutocomplete
-              v-model="filtersDto.isActive"
-              clearable
-              label="الحالة"
-              :items="[
-                { title: 'فعال', value: true },
-                { title: 'غير فعال', value: false },
-              ]"
-              item-title="title"
-              item-value="value"
-              class="mx-2"
-              @update:model-value="refetch"
-            ></VAutocomplete>
-          </div>
-
-          <div class="flex justify-center items-center gap-2 mb-5">
+          <div class="flex justify-center items-center gap-2">
             <VBtn
               color="primary"
               prepend-icon="tabler-plus"
@@ -276,12 +283,12 @@ watch(
           </div>
         </template>
 
-
-
         <!-- Pagination -->
         <template #bottom>
           <VCardText class="pt-2">
-            <div class="d-flex flex-wrap justify-center justify-sm-space-between gap-y-2 mt-2">
+            <div
+              class="d-flex flex-wrap justify-center justify-sm-space-between gap-y-2 mt-2"
+            >
               <VPagination
                 v-model="paginationCity.currentPage"
                 :total-visible="5"
@@ -308,7 +315,9 @@ watch(
           <VRow>
             <!-- الاسم بالعربية -->
             <VCol cols="12" md="6">
-              <label>اسم المدينة (عربي) <span class="text-error">*</span></label>
+              <label
+                >اسم المدينة (عربي) <span class="text-error">*</span></label
+              >
               <AppTextField
                 v-model="Add.name.ar"
                 :rules="[requiredValidator]"
@@ -330,7 +339,7 @@ watch(
               <label>البلد <span class="text-error">*</span></label>
               <VAutocomplete
                 v-model="Add.countryId"
-                :items="countryList"
+                :items="CountryNameList"
                 item-title="name"
                 item-value="id"
                 :rules="[requiredValidator]"
@@ -342,11 +351,7 @@ watch(
       </VCardText>
 
       <VCardText class="w-full my-4 flex justify-center items-center gap-4">
-        <v-btn
-          :loading="AddLoading"
-          color="primary"
-          @click="save"
-        >
+        <v-btn :loading="AddLoading" color="primary" @click="save">
           إضافة
         </v-btn>
         <v-btn variant="tonal" color="error" @click="cancel">إلغاء</v-btn>
@@ -367,7 +372,9 @@ watch(
           <VRow>
             <!-- الاسم بالعربية -->
             <VCol cols="12" md="6">
-              <label>اسم المدينة (عربي) <span class="text-error">*</span></label>
+              <label
+                >اسم المدينة (عربي) <span class="text-error">*</span></label
+              >
               <AppTextField
                 v-model="cityDetails.name.ar"
                 :rules="[requiredValidator]"
@@ -389,7 +396,7 @@ watch(
               <label>البلد <span class="text-error">*</span></label>
               <VAutocomplete
                 v-model="cityDetails.countryId"
-                :items="countryList"
+                :items="CountryNameList"
                 item-title="name"
                 item-value="id"
                 :rules="[requiredValidator]"

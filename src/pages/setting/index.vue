@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import country from "./components/country.vue";
 import city from "./components/city.vue";
-import region from "./components/region.vue";
+import country from "./components/country.vue";
 import paymentMethod from "./components/paymentMethod.vue";
+import region from "./components/region.vue";
 </script>
 <template>
   <h3>الإعدادات <VIcon>tabler-settings</VIcon></h3>
@@ -24,6 +24,9 @@ import paymentMethod from "./components/paymentMethod.vue";
   </div>
 
   <div class="grid grid-rows-2 grid-cols-12 gap-4 mt-5 same-height">
+    <!-- <country />
+    <city /> -->
+
     <!-- <country /> -->
 
     <!-- Grid container for equal-height components -->

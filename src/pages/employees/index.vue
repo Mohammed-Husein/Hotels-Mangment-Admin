@@ -108,19 +108,19 @@ const itemsDelete = ref<string[]>([]);
 //     });
 //   });
 // };
-// const deleteSingleItem = (item: any) => {
-//   // إلغاء تحديد العناصر الأخرى
-//   ids.value = [];
-//   itemsDelete.value = [item.id];
+const deleteSingleItem = (item: any) => {
+  // إلغاء تحديد العناصر الأخرى
+  ids.value = [];
+  itemsDelete.value = [item.id];
 
-//   store.DeleteEmployee(itemsDelete.value, item?.name).then(() => {
-//     store.GetAllEmployees({ ...filtersDto.value }).then(() => {
-//       isUpdateOptions.value = true;
-//       refetch();
-//       ids.value = []; // تأكد من إفراغ التحديد
-//     });
-//   });
-// };
+  store.DeleteEmployee(item.id, item?.fullName).then(() => {
+    store.GetAllEmployees({ ...filtersDto.value }).then(() => {
+      isUpdateOptions.value = true;
+      refetch();
+      ids.value = []; // تأكد من إفراغ التحديد
+    });
+  });
+};
 // Handle sorting changes
 const onSortByUpdate = (sortBy: Array<{ key: string; order: string }>) => {
   if (sortBy && sortBy.length > 0) {

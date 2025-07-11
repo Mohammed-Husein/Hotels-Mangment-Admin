@@ -1,5 +1,9 @@
 import { useApi, usePagination } from "@/composables";
-import { AddPaymentMethod, filterPaymentMethodDto, GetAllPaymentMethods } from "./api/dto";
+import {
+  AddPaymentMethod,
+  filterPaymentMethodDto,
+  GetAllPaymentMethods,
+} from "./api/dto";
 import { PAYMENT_METHOD_API } from "./api/endpoint";
 
 export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
@@ -7,13 +11,13 @@ export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
 
   const paymentMethodList = ref<GetAllPaymentMethods["paymentMethods"]>([]);
   const paymentMethodDetails = ref<AddPaymentMethod[]>([]);
-  
+
   // pagination
   const createPagination = (page?: number) => {
     const { pagination } = usePagination(page || 8);
     return pagination;
   };
-  
+
   const paginationPaymentMethod = createPagination();
 
   // جلب جميع طرق الدفع
@@ -31,13 +35,13 @@ export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
 
     paymentMethodList.value = response.data?.data.paymentMethods || [];
     paginationPaymentMethod.value.totalCount = response.data?.data.count || 0;
-    paginationPaymentMethod.value.totalPages = Math.ceil((response.data?.data.count || 0) / paginationPaymentMethod.value.limit);
+    paginationPaymentMethod.value.totalPages = Math.ceil(
+      (response.data?.data.count || 0) / paginationPaymentMethod.value.limit
+    );
   }
 
   // إضافة طريقة دفع جديدة
   async function AddPaymentMethod(payload: any) {
-   
-
     const response = await POST(
       PAYMENT_METHOD_API.Add,
       payload,
@@ -47,7 +51,6 @@ export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
 
     return response;
   }
-
   // جلب طريقة دفع بالمعرف
   async function GetPaymentMethodById(id: string) {
     const response = await GET<any>(
@@ -56,39 +59,30 @@ export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
       {},
       {}
     );
-    const paymentMethod = response.data?.data.paymentMethod;
-    if (paymentMethod) {
-      paymentMethodDetails.value = {
-        id: paymentMethod.id,
-        nameAr: paymentMethod.name?.ar || "",
-        nameEn: paymentMethod.name?.en || "",
-        code: paymentMethod.code || "",
-        descriptionAr: paymentMethod.description?.ar || "",
-        descriptionEn: paymentMethod.description?.en || "",
-        displayOrder: paymentMethod.displayOrder || 0,
-        isActive: paymentMethod.isActive,
-        icon: null
-      };
-    }
+    paymentMethodDetails.value = response.data?.data.paymentMethod;
   }
 
   // تعديل طريقة دفع
   async function ModifyPaymentMethod(payload: any) {
     // إنشاء FormData لإرسال الملفات
     const formData = new FormData();
-    
+
     // إضافة البيانات النصية
-    if (payload.nameAr) formData.append('nameAr', payload.nameAr);
-    if (payload.nameEn) formData.append('nameEn', payload.nameEn);
-    if (payload.code) formData.append('code', payload.code);
-    if (payload.descriptionAr) formData.append('descriptionAr', payload.descriptionAr);
-    if (payload.descriptionEn) formData.append('descriptionEn', payload.descriptionEn);
-    if (payload.displayOrder !== undefined) formData.append('displayOrder', payload.displayOrder.toString());
-    if (payload.isActive !== undefined) formData.append('isActive', payload.isActive.toString());
-    
+    if (payload.nameAr) formData.append("nameAr", payload.nameAr);
+    if (payload.nameEn) formData.append("nameEn", payload.nameEn);
+    if (payload.code) formData.append("code", payload.code);
+    if (payload.descriptionAr)
+      formData.append("descriptionAr", payload.descriptionAr);
+    if (payload.descriptionEn)
+      formData.append("descriptionEn", payload.descriptionEn);
+    if (payload.displayOrder !== undefined)
+      formData.append("displayOrder", payload.displayOrder.toString());
+    if (payload.isActive !== undefined)
+      formData.append("isActive", payload.isActive.toString());
+
     // إضافة الأيقونة إذا كانت موجودة
     if (payload.icon) {
-      formData.append('icon', payload.icon);
+      formData.append("icon", payload.icon);
     }
 
     const response = await PUT(

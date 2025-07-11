@@ -112,7 +112,7 @@ const deleteSingleItem = (item: any) => {
   ids.value = [];
   itemsDelete.value = [item.id];
 
-  store.DeleteCustomer(itemsDelete.value, item?.name).then(() => {
+  store.DeleteCustomer(item.id, item?.firstName).then(() => {
     store.GetAllCustomer({ ...filtersDto.value }).then(() => {
       isUpdateOptions.value = true;
       refetch();
