@@ -49,6 +49,7 @@ declare module 'vue-router/auto/routes' {
     'employees-components-add-employee': RouteRecordInfo<'employees-components-add-employee', '/employees/components/AddEmployee', Record<never, never>, Record<never, never>>,
     'forget-password': RouteRecordInfo<'forget-password', '/forgetPassword', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
+    'profile': RouteRecordInfo<'profile', '/profile', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
     'setting': RouteRecordInfo<'setting', '/setting', Record<never, never>, Record<never, never>>,
