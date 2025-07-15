@@ -7,7 +7,7 @@ export class Hotel {
   id = "";
   name = {
     ar: "",
-    en: ""
+    en: "",
   };
   type = "";
   stars = 1;
@@ -19,15 +19,15 @@ export class Hotel {
   regionName = "";
   address = {
     ar: "",
-    en: ""
+    en: "",
   };
   description = {
     ar: "",
-    en: ""
+    en: "",
   };
   location = {
     type: "Point",
-    coordinates: [0, 0]
+    coordinates: [0, 0],
   };
   images: string[] = [];
   amenities: string[] = [];
@@ -36,29 +36,29 @@ export class Hotel {
     checkOut: "12:00",
     cancellationPolicy: {
       ar: "",
-      en: ""
+      en: "",
     },
     petPolicy: {
       ar: "",
-      en: ""
+      en: "",
     },
     smokingPolicy: {
       ar: "",
-      en: ""
-    }
+      en: "",
+    },
   };
   contactInfo = {
     website: "",
     socialMedia: {
       facebook: "",
       instagram: "",
-      twitter: ""
-    }
+      twitter: "",
+    },
   };
   isActive = true;
   rating = {
     average: 0,
-    count: 0
+    count: 0,
   };
   owner = "";
   createdByEmployee = "";
@@ -70,6 +70,7 @@ export class Hotel {
 }
 
 export class HotelFiltersDto {
+  employeeId: null | string = null;
   search: null | string = null;
   isActive: null | boolean = null;
   countryId: null | string = null;
@@ -108,15 +109,18 @@ export class AddHotelDto {
   smokingPolicyAr = "";
   smokingPolicyEn = "";
   isActive = true;
+  employeeId = "";
+  imagefile = "";
 }
 
 export class DetailsHotelDto {
   id = "";
   name = {
     ar: "",
-    en: ""
+    en: "",
   };
   type = "";
+  imagefile = "";
   stars = 1;
   country = "";
   countryName = "";
@@ -126,15 +130,15 @@ export class DetailsHotelDto {
   regionName = "";
   address = {
     ar: "",
-    en: ""
+    en: "",
   };
   description = {
     ar: "",
-    en: ""
+    en: "",
   };
   location = {
     type: "Point",
-    coordinates: [0, 0]
+    coordinates: [0, 0],
   };
   images: string[] = [];
   amenities: string[] = [];
@@ -143,29 +147,29 @@ export class DetailsHotelDto {
     checkOut: "12:00",
     cancellationPolicy: {
       ar: "",
-      en: ""
+      en: "",
     },
     petPolicy: {
       ar: "",
-      en: ""
+      en: "",
     },
     smokingPolicy: {
       ar: "",
-      en: ""
-    }
+      en: "",
+    },
   };
   contactInfo = {
     website: "",
     socialMedia: {
       facebook: "",
       instagram: "",
-      twitter: ""
-    }
+      twitter: "",
+    },
   };
   isActive = true;
   rating = {
     average: 0,
-    count: 0
+    count: 0,
   };
   owner = "";
   createdByEmployee = "";
@@ -206,4 +210,5 @@ export class ModifyHotelDto {
   smokingPolicyAr = "";
   smokingPolicyEn = "";
   isActive = true;
+  images = [];
 }

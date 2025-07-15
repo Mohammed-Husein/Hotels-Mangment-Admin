@@ -51,7 +51,7 @@ export const useEmployeeStore = defineStore("Employees", () => {
       {}
     );
 
-    EmployeeNames.value = response.data;
+    EmployeeNames.value = response.data?.data.employees;
   }
 
   // Get Cities by Country

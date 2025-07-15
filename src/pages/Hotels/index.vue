@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { useHotelStore } from "./hotel";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { storeToRefs } from "pinia";
-import { onMounted, watch } from "vue";
+import { onMounted } from "vue";
+import { useEmployeeStore } from "../employees/employee";
 import type { HotelFiltersDto } from "./api/dto";
+import { useHotelStore } from "./hotel";
 
 const store = useHotelStore();
 const settingStore = useSettingStore();
-
-const { HotelList, paginationHotel, CitiesList, RegionsList } = storeToRefs(store);
+const employeeStore = useEmployeeStore();
+const { HotelList, paginationHotel, CitiesList, RegionsList } =
+  storeToRefs(store);
 const { CountryNameList } = storeToRefs(settingStore);
-
+const { EmployeeNames } = storeToRefs(employeeStore);
 // Loading states
 const loading = ref(true);
 const filtersLoading = ref(false);
@@ -18,6 +20,7 @@ const filtersLoading = ref(false);
 // Filters
 const filters = ref<HotelFiltersDto>({
   search: null,
+  employeeId: null,
   isActive: null,
   countryId: null,
   governorateId: null,
@@ -35,7 +38,7 @@ onMounted(async () => {
     await Promise.all([
       settingStore.GetAllCountryNames(),
       store.GetAllGovernorateNames(),
-      store.GetAllRegionNames()
+      store.GetAllRegionNames(),
     ]);
     await store.GetAllHotels(filters.value);
   } catch (error) {
@@ -43,6 +46,7 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
+  employeeStore.GetAllEmployeeNames();
 });
 
 // Independent filter change handlers
@@ -79,6 +83,7 @@ const applyFilters = async () => {
 const clearFilters = async () => {
   filters.value = {
     search: null,
+    employeeId: null,
     isActive: null,
     countryId: null,
     governorateId: null,
@@ -128,7 +133,7 @@ const getRoomsCount = (hotel: any) => {
 // Get hotel date
 const getHotelDate = (hotel: any) => {
   if (hotel.createdAt) {
-    return new Date(hotel.createdAt).toLocaleDateString('ar-EG');
+    return new Date(hotel.createdAt).toLocaleDateString("ar-EG");
   }
   return "";
 };
@@ -168,11 +173,15 @@ const deleteHotel = async (hotel: any) => {
           clearable
           @update:model-value="onSearchChange"
           :loading="loading"
-          style="width: 300px;"
+          style="width: 300px"
           density="compact"
           variant="outlined"
         />
-        <VBtn color="primary" prepend-icon="tabler-plus" @click="$router.push('/Hotels/AddHotel')">
+        <VBtn
+          color="primary"
+          prepend-icon="tabler-plus"
+          @click="$router.push('/Hotels/AddHotel')"
+        >
           إضافة فندق جديد
         </VBtn>
       </div>
@@ -183,7 +192,7 @@ const deleteHotel = async (hotel: any) => {
       <VCardText>
         <VRow>
           <VCol cols="12" md="3">
-            <VSelect
+            <VAutocomplete
               v-model="filters.countryId"
               :items="CountryNameList"
               item-title="name"
@@ -194,7 +203,7 @@ const deleteHotel = async (hotel: any) => {
             />
           </VCol>
           <VCol cols="12" md="3">
-            <VSelect
+            <VAutocomplete
               v-model="filters.governorateId"
               :items="CitiesList"
               item-title="name"
@@ -205,7 +214,7 @@ const deleteHotel = async (hotel: any) => {
             />
           </VCol>
           <VCol cols="12" md="3">
-            <VSelect
+            <VAutocomplete
               v-model="filters.regionId"
               :items="RegionsList"
               item-title="name"
@@ -216,48 +225,56 @@ const deleteHotel = async (hotel: any) => {
             />
           </VCol>
           <VCol cols="12" md="3">
-            <VSelect
+            <VAutocomplete
               v-model="filters.isActive"
               :items="[
                 { title: 'جميع الفنادق', value: null },
                 { title: 'نشط', value: true },
-                { title: 'غير نشط', value: false }
+                { title: 'غير نشط', value: false },
               ]"
               item-title="title"
               item-value="value"
               label="الحالة"
               @update:model-value="onStatusChange"
+              clearable
+            />
+          </VCol>
+          <VCol cols="12" md="3">
+            <VAutocomplete
+              v-model="filters.employeeId"
+              :items="EmployeeNames"
+              item-title="name"
+              item-value="id"
+              label="الموظفين"
+              @update:model-value="applyFilters"
+              clearable
             />
           </VCol>
         </VRow>
-        <div class="d-flex justify-end mt-4">
-          <VBtn variant="outlined" @click="clearFilters" :loading="loading">
-            مسح الفلاتر
-          </VBtn>
-        </div>
       </VCardText>
     </VCard>
 
     <!-- Loading State -->
-    <div v-if="loading" class="d-flex justify-center align-center" style="min-height: 400px;">
-      <VProgressCircular
-        indeterminate
-        size="64"
-        color="primary"
-      />
+    <div
+      v-if="loading"
+      class="d-flex justify-center align-center"
+      style="min-height: 400px"
+    >
+      <VProgressCircular indeterminate size="64" color="primary" />
     </div>
 
     <!-- No Data State -->
-    <VCard v-else-if="!HotelList || HotelList.length === 0" class="text-center py-16">
+    <VCard
+      v-else-if="!HotelList || HotelList.length === 0"
+      class="text-center py-16"
+    >
       <VCardText>
         <VIcon size="64" color="grey" class="mb-4">tabler-building-off</VIcon>
         <h3 class="text-h5 mb-2">لا توجد فنادق</h3>
         <p class="text-body-1 text-medium-emphasis mb-4">
           لم يتم العثور على أي فنادق تطابق معايير البحث
         </p>
-        <VBtn color="primary" @click="clearFilters">
-          مسح الفلاتر
-        </VBtn>
+        <VBtn color="primary" @click="clearFilters"> مسح الفلاتر </VBtn>
       </VCardText>
     </VCard>
 
@@ -296,18 +313,28 @@ const deleteHotel = async (hotel: any) => {
 
               <!-- Hotel Info -->
               <div class="d-flex align-center mb-2">
-                <VIcon size="16" color="primary" class="me-2">tabler-user</VIcon>
+                <VIcon size="16" color="primary" class="me-2"
+                  >tabler-user</VIcon
+                >
                 <span class="text-body-2">{{ getEmployeeName(hotel) }}</span>
               </div>
 
               <div class="d-flex align-center mb-2">
-                <VIcon size="16" color="primary" class="me-2">tabler-door</VIcon>
-                <span class="text-body-2">عدد الغرف ({{ getRoomsCount(hotel) }})</span>
+                <VIcon size="16" color="primary" class="me-2"
+                  >tabler-door</VIcon
+                >
+                <span class="text-body-2"
+                  >عدد الغرف ({{ getRoomsCount(hotel) }})</span
+                >
               </div>
 
               <div class="d-flex align-center mb-3">
-                <VIcon size="16" color="grey" class="me-2">tabler-calendar</VIcon>
-                <span class="text-caption text-medium-emphasis">{{ getHotelDate(hotel) }}</span>
+                <VIcon size="16" color="grey" class="me-2"
+                  >tabler-calendar</VIcon
+                >
+                <span class="text-caption text-medium-emphasis">{{
+                  getHotelDate(hotel)
+                }}</span>
               </div>
 
               <!-- Hotel Stars -->
@@ -330,8 +357,7 @@ const deleteHotel = async (hotel: any) => {
                 variant="tonal"
                 size="small"
                 prepend-icon="tabler-edit"
-                @click=" $router.push(`/Hotels/EditHotel/${hotel.id}`);
-"
+                @click="$router.push(`/Hotels/EditHotel/${hotel.id}`)"
                 class="flex-1"
               >
                 تعديل
@@ -352,7 +378,7 @@ const deleteHotel = async (hotel: any) => {
       </VRow>
 
       <!-- Pagination -->
-      <div class="d-flex justify-center mt-6" v-if="paginationHotel.totalPages > 1">
+      <div class="d-flex justify-center mt-6">
         <VPagination
           v-model="paginationHotel.currentPage"
           :length="paginationHotel.totalPages"

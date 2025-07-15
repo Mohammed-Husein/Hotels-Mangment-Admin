@@ -4,4 +4,5 @@ export enum HOTEL_API {
   Add = "hotels",
   Modify = "hotels",
   Delete = "hotels",
+  name = "hotels/GetAllNames",
 }

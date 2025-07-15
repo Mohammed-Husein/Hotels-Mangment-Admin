@@ -15,6 +15,11 @@ export default [
     icon: { icon: "tabler-user" },
   },
   {
+    title: "الفنادق",
+    to: { name: "hotels" },
+    icon: { icon: "tabler-user" },
+  },
+  {
     title: "الاعدادت",
     to: { name: "setting" },
     icon: { icon: "tabler-settings" },

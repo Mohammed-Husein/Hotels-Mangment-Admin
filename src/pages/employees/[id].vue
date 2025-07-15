@@ -7,9 +7,10 @@ import { storeToRefs } from "pinia";
 import { onMounted, watch } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
+import { useHotelStore } from "../Hotels/hotel";
 import type { ChangeEmployeeStatusDto } from "./api/dto";
 import { useEmployeeStore } from "./employee";
-
+const hotelStore = useHotelStore();
 const store = useEmployeeStore();
 const route = useRoute();
 const results = ref();
@@ -25,7 +26,7 @@ const pageLoading = ref(true);
 const settingStore = useSettingStore();
 const { CountryNameList } = storeToRefs(settingStore);
 const { EmployeeDetails, CitiesList, RegionsList } = storeToRefs(store);
-
+const { HotelNames } = storeToRefs(hotelStore);
 // Load employee details and countries
 onMounted(async () => {
   pageLoading.value = true;
@@ -38,6 +39,7 @@ onMounted(async () => {
   } finally {
     pageLoading.value = false;
   }
+  hotelStore.GetAllHotelNames();
 });
 
 // Load cities and regions when employee details are loaded
@@ -123,6 +125,8 @@ const modifyBtn = async () => {
       permissions: EmployeeDetails.value.permissions,
       notes: EmployeeDetails.value.notes,
       deviceToken: EmployeeDetails.value.deviceToken,
+      hotelId: EmployeeDetails.value.hotelId,
+      taskDescription: EmployeeDetails.value.taskDescription,
     };
 
     await store.ModifyEmployee(modifyData);
@@ -244,12 +248,12 @@ const getStatusText = () => {
 
 <template>
   <!-- Loading State -->
-  <div v-if="pageLoading" class="d-flex justify-center align-center" style="min-height: 400px;">
-    <VProgressCircular
-      indeterminate
-      size="64"
-      color="primary"
-    />
+  <div
+    v-if="pageLoading"
+    class="d-flex justify-center align-center"
+    style="min-height: 400px"
+  >
+    <VProgressCircular indeterminate size="64" color="primary" />
   </div>
 
   <!-- Main Content -->
@@ -267,170 +271,201 @@ const getStatusText = () => {
       </VChip>
     </div>
 
-  <VForm ref="EmployeeForm">
-    <VCard class="mt-5">
-      <div class="flex justify-between">
-        <h3 class="mb-4 mt-4 mx-5">معلومات الموظف</h3>
-      </div>
-      <VRow class="mb-5 mx-1 mt-7">
-        <VCol cols="12" md="6">
-          <label>رقم ID <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="EmployeeDetails.number"
-            placeholder="رقم ID"
-            class="mx-2"
-            disabled
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>الاسم الكامل <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="EmployeeDetails.fullName"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>البريد الالكتروني <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="EmployeeDetails.email"
-            type="email"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <div style="margin-right: 10px">
-            <label class="">رقم الهاتف <span class="text-error">*</span></label>
-            <div class="w-full md:w-[75%]">
-              <div dir="ltr">
-                <MazPhoneNumberInput
-                  @update="results = $event"
-                  label="رقم الهاتف"
-                  :isValid="true"
-                  show-code-on-list
-                  :rules="[requiredValidator]"
-                  v-model="EmployeeDetails.phoneNumber"
-                  :noFlags="false"
-                  class="w-[90%] px-5"
-                  :preferred-countries="CountryList"
-                  v-model:country-code="DefaultCountry"
-                  theme="dark"
-                  size="md"
-                />
+    <VForm ref="EmployeeForm">
+      <VCard class="mt-5">
+        <div class="flex justify-between">
+          <h3 class="mb-4 mt-4 mx-5">معلومات الموظف</h3>
+        </div>
+        <VRow class="mb-5 mx-1 mt-7">
+          <VCol cols="12" md="6">
+            <label>رقم ID <span class="text-error">*</span></label>
+            <AppTextField
+              v-model="EmployeeDetails.number"
+              placeholder="رقم ID"
+              class="mx-2"
+              disabled
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>الاسم الكامل <span class="text-error">*</span></label>
+            <AppTextField
+              v-model="EmployeeDetails.fullName"
+              class="mx-2"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>البريد الالكتروني <span class="text-error">*</span></label>
+            <AppTextField
+              v-model="EmployeeDetails.email"
+              type="email"
+              class="mx-2"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <div style="margin-right: 10px">
+              <label class=""
+                >رقم الهاتف <span class="text-error">*</span></label
+              >
+              <div class="w-full md:w-[75%]">
+                <div dir="ltr">
+                  <MazPhoneNumberInput
+                    @update="results = $event"
+                    label="رقم الهاتف"
+                    :isValid="true"
+                    show-code-on-list
+                    :rules="[requiredValidator]"
+                    v-model="EmployeeDetails.phoneNumber"
+                    :noFlags="false"
+                    class="w-[90%] px-5"
+                    :preferred-countries="CountryList"
+                    v-model:country-code="DefaultCountry"
+                    theme="dark"
+                    size="md"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </VCol>
-        <VCol cols="12" md="6">
-          <div style="margin-right: 10px">
-            <label class="">رقم الهاتف البديل</label>
-            <div class="w-full md:w-[75%]">
-              <div dir="ltr">
-                <MazPhoneNumberInput
-                  @update="alternateResults = $event"
-                  label="رقم الهاتف البديل"
-                  :isValid="true"
-                  show-code-on-list
-                  v-model="EmployeeDetails.alternatePhoneNumber"
-                  :noFlags="false"
-                  class="w-[90%] px-5"
-                  :preferred-countries="CountryList"
-                  v-model:country-code="DefaultCountry"
-                  theme="dark"
-                  size="md"
-                />
+          </VCol>
+          <VCol cols="12" md="6">
+            <div style="margin-right: 10px">
+              <label class="">رقم الهاتف البديل</label>
+              <div class="w-full md:w-[75%]">
+                <div dir="ltr">
+                  <MazPhoneNumberInput
+                    @update="alternateResults = $event"
+                    label="رقم الهاتف البديل"
+                    :isValid="true"
+                    show-code-on-list
+                    v-model="EmployeeDetails.alternatePhoneNumber"
+                    :noFlags="false"
+                    class="w-[90%] px-5"
+                    :preferred-countries="CountryList"
+                    v-model:country-code="DefaultCountry"
+                    theme="dark"
+                    size="md"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>الدور الوظيفي <span class="text-error">*</span></label>
-          <VSelect
-            v-model="EmployeeDetails.role"
-            :items="employeeRoles"
-            item-title="title"
-            item-value="value"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>البلد <span class="text-error">*</span></label>
-          <VAutocomplete
-            :items="CountryNameList"
-            item-title="name"
-            item-value="id"
-            v-model="EmployeeDetails.countryId"
-            @update:model-value="onCountryChange"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>المدينة <span class="text-error">*</span></label>
-          <VAutocomplete
-            :items="CitiesList"
-            item-title="name"
-            item-value="id"
-            v-model="EmployeeDetails.cityId"
-            @update:model-value="onCityChange"
-            class="mx-2"
-            :rules="[requiredValidator]"
-            :disabled="!EmployeeDetails.countryId"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>المنطقة <span class="text-error">*</span></label>
-          <VAutocomplete
-            :items="RegionsList"
-            item-title="name"
-            item-value="id"
-            v-model="EmployeeDetails.regionId"
-            class="mx-2"
-            :rules="[requiredValidator]"
-            :disabled="!EmployeeDetails.cityId"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>حالة الموظف</label>
-          <VSelect
-            v-model="EmployeeDetails.status"
-            :items="[
-              { title: 'نشط', value: 'Active' },
-              { title: 'غير نشط', value: 'Inactive' },
-              { title: 'معلق', value: 'Suspended' },
-              { title: 'في إجازة', value: 'OnLeave' },
-            ]"
-            item-title="title"
-            item-value="value"
-            class="mx-2"
-            disabled
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>تاريخ التوظيف</label>
-          <AppTextField
-            v-model="EmployeeDetails.hireDate"
-            class="mx-2"
-            disabled
-            :model-value="EmployeeDetails.hireDate ? new Date(EmployeeDetails.hireDate).toLocaleDateString('ar-EG') : ''"
-          />
-        </VCol>
-        <VCol cols="12" md="6">
-          <label>رمز الجهاز</label>
-          <AppTextField v-model="EmployeeDetails.deviceToken" class="mx-2" />
-        </VCol>
-        <VCol cols="12" md="12">
-          <label>ملاحظات</label>
-          <VTextarea v-model="EmployeeDetails.notes" class="mx-2" />
-        </VCol>
-      </VRow>
-    </VCard>
-  </VForm>
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>الدور الوظيفي <span class="text-error">*</span></label>
+            <VAutocomplete
+              v-model="EmployeeDetails.role"
+              :items="employeeRoles"
+              item-title="title"
+              item-value="value"
+              class="mx-2"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label> الفندق الذي يتبع له<span class="text-error">*</span></label>
+            <VAutocomplete
+              v-model="EmployeeDetails.hotelId"
+              :items="HotelNames"
+              item-title="name"
+              item-value="id"
+              class="mx-2"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label> شرح المهمة</label>
+            <VTextField
+              v-model="EmployeeDetails.taskDescription"
+              class="mx-2"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>البلد <span class="text-error">*</span></label>
+            <VAutocomplete
+              :items="CountryNameList"
+              item-title="name"
+              item-value="id"
+              v-model="EmployeeDetails.countryId"
+              @update:model-value="onCountryChange"
+              class="mx-2"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>المدينة <span class="text-error">*</span></label>
+            <VAutocomplete
+              :items="CitiesList"
+              item-title="name"
+              item-value="id"
+              v-model="EmployeeDetails.cityId"
+              @update:model-value="onCityChange"
+              class="mx-2"
+              :rules="[requiredValidator]"
+              :disabled="!EmployeeDetails.countryId"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>المنطقة <span class="text-error">*</span></label>
+            <VAutocomplete
+              :items="RegionsList"
+              item-title="name"
+              item-value="id"
+              v-model="EmployeeDetails.regionId"
+              class="mx-2"
+              :rules="[requiredValidator]"
+              :disabled="!EmployeeDetails.cityId"
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>حالة الموظف</label>
+            <VAutocomplete
+              v-model="EmployeeDetails.status"
+              :items="[
+                { title: 'نشط', value: 'Active' },
+                { title: 'غير نشط', value: 'Inactive' },
+                { title: 'معلق', value: 'Suspended' },
+                { title: 'في إجازة', value: 'OnLeave' },
+              ]"
+              item-title="title"
+              item-value="value"
+              class="mx-2"
+              disabled
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>تاريخ التوظيف</label>
+            <AppTextField
+              v-model="EmployeeDetails.hireDate"
+              class="mx-2"
+              disabled
+              :model-value="
+                EmployeeDetails.hireDate
+                  ? new Date(EmployeeDetails.hireDate).toLocaleDateString(
+                      'ar-EG'
+                    )
+                  : ''
+              "
+            />
+          </VCol>
+          <VCol cols="12" md="6">
+            <label>رمز الجهاز</label>
+            <AppTextField v-model="EmployeeDetails.deviceToken" class="mx-2" />
+          </VCol>
+          <VCol cols="12" md="12">
+            <label>ملاحظات</label>
+            <VTextarea v-model="EmployeeDetails.notes" class="mx-2" />
+          </VCol>
+        </VRow>
+      </VCard>
+    </VForm>
 
     <div class="flex justify-end mt-4 mx-2">
-      <VBtn class="mx-1" :loading="ModifyLoading" @click="modifyBtn" color="primary">
+      <VBtn
+        class="mx-1"
+        :loading="ModifyLoading"
+        @click="modifyBtn"
+        color="primary"
+      >
         <VIcon start>tabler-device-floppy</VIcon>
         تعديل
       </VBtn>

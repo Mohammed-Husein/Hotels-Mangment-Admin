@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CountryList, DefaultCountry } from "@/composables/countryList";
+import { useHotelStore } from "@/pages/Hotels/hotel";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
 import { storeToRefs } from "pinia";
@@ -12,10 +13,12 @@ const EmployeeForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
 const settingStore = useSettingStore();
 const { CountryNameList } = storeToRefs(settingStore);
-
+const hotelStore = useHotelStore();
+const { HotelNames } = storeToRefs(hotelStore);
 // Load countries on component mount
 onMounted(async () => {
   await settingStore.GetAllCountryNames();
+  await hotelStore.GetAllHotelNames();
 });
 
 const AddDto = ref<AddEmployeeDto>({
@@ -32,6 +35,8 @@ const AddDto = ref<AddEmployeeDto>({
   permissions: [],
   notes: "",
   deviceToken: "",
+  hotelId: "",
+  taskDescription: "",
 });
 
 const results = ref();
@@ -46,6 +51,7 @@ const employeeRoles = [
   { title: "مدير فرع", value: "Manager" },
   { title: "موظف استقبال", value: "Receptionist" },
   { title: "مشرف", value: "Supervisor" },
+  { title: "موظف", value: "worker" },
 ];
 
 // Watch for country change to load cities
@@ -104,6 +110,7 @@ const save = async () => {
         permissions: AddDto.value.permissions,
         notes: AddDto.value.notes,
         deviceToken: AddDto.value.deviceToken,
+        hotelId: AddDto.value.hotelId,
       };
 
       const response = await store.AddEmployee(employeeData);
@@ -178,7 +185,7 @@ const save = async () => {
         </VCol>
         <VCol cols="12" md="6">
           <label>الدور الوظيفي <span class="text-error">*</span></label>
-          <VSelect
+          <VAutocomplete
             v-model="AddDto.role"
             :items="employeeRoles"
             item-title="title"
@@ -187,6 +194,21 @@ const save = async () => {
             :rules="[requiredValidator]"
           />
         </VCol>
+        <VCol cols="12" md="6">
+          <label> الفندق الذي يتبع له <span class="text-error">*</span></label>
+          <VAutocomplete
+            v-model="AddDto.hotelId"
+            :items="HotelNames"
+            item-title="name"
+            item-value="id"
+            class="mx-2"
+            :rules="[requiredValidator]"
+          />
+        </VCol>
+        <VCol cols="12" md="6">
+          <label>شرح المهمة </label>
+          <VTextField v-model="AddDto.taskDescription"
+        /></VCol>
         <VCol cols="12" md="6">
           <label>كلمة السر <span class="text-error">*</span></label>
           <AppTextField

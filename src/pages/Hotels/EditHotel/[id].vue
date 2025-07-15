@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { requiredValidator, emailValidator, urlValidator } from "@/@core/utils/validators";
+import { requiredValidator, urlValidator } from "@/@core/utils/validators";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
 import { storeToRefs } from "pinia";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
 import type { ModifyHotelDto } from "../api/dto";
 import { useHotelStore } from "../hotel";
-import FileUploader from "@/components/shared/FileUploader.vue";
 
 const route = useRoute();
 const hotelId = route.params.id as string;
@@ -30,9 +29,9 @@ onMounted(async () => {
       settingStore.GetAllCountryNames(),
       hotelStore.GetAllGovernorateNames(),
       hotelStore.GetAllRegionNames(),
-      hotelStore.GetDetailsHotel(hotelId)
+      hotelStore.GetDetailsHotel(hotelId),
     ]);
-    
+
     // Populate form with hotel details
     populateForm();
   } catch (error) {
@@ -46,6 +45,7 @@ onMounted(async () => {
 const EditDto = ref<ModifyHotelDto>({
   id: hotelId,
   nameAr: "",
+  images: [],
   nameEn: "",
   type: "فندق",
   stars: 1,
@@ -121,13 +121,16 @@ const populateForm = () => {
       twitter: HotelDetails.value.contactInfo?.socialMedia?.twitter || "",
       checkIn: HotelDetails.value.policies?.checkIn || "14:00",
       checkOut: HotelDetails.value.policies?.checkOut || "12:00",
-      cancellationPolicyAr: HotelDetails.value.policies?.cancellationPolicy?.ar || "",
-      cancellationPolicyEn: HotelDetails.value.policies?.cancellationPolicy?.en || "",
+      cancellationPolicyAr:
+        HotelDetails.value.policies?.cancellationPolicy?.ar || "",
+      cancellationPolicyEn:
+        HotelDetails.value.policies?.cancellationPolicy?.en || "",
       petPolicyAr: HotelDetails.value.policies?.petPolicy?.ar || "",
       petPolicyEn: HotelDetails.value.policies?.petPolicy?.en || "",
       smokingPolicyAr: HotelDetails.value.policies?.smokingPolicy?.ar || "",
       smokingPolicyEn: HotelDetails.value.policies?.smokingPolicy?.en || "",
       isActive: HotelDetails.value.isActive ?? true,
+      images: HotelDetails.value.images ?? [],
     };
   }
 };
@@ -164,12 +167,12 @@ const save = async () => {
 <template>
   <div>
     <!-- Loading State -->
-    <div v-if="pageLoading" class="d-flex justify-center align-center" style="min-height: 400px;">
-      <VProgressCircular
-        indeterminate
-        size="64"
-        color="primary"
-      />
+    <div
+      v-if="pageLoading"
+      class="d-flex justify-center align-center"
+      style="min-height: 400px"
+    >
+      <VProgressCircular indeterminate size="64" color="primary" />
     </div>
 
     <!-- Edit Form -->
@@ -190,7 +193,7 @@ const save = async () => {
           <div class="flex justify-between">
             <h3 class="mb-4 mt-4 mx-5">معلومات الفندق</h3>
           </div>
-          
+
           <VRow class="mb-5 mx-1 mt-7">
             <!-- Basic Information Section -->
             <VCol cols="12">
@@ -209,13 +212,10 @@ const save = async () => {
                 :rules="[requiredValidator]"
               />
             </VCol>
-            
+
             <VCol cols="12" md="6">
               <label>اسم الفندق (إنجليزي)</label>
-              <AppTextField
-                v-model="EditDto.nameEn"
-                class="mx-2"
-              />
+              <AppTextField v-model="EditDto.nameEn" class="mx-2" />
             </VCol>
 
             <VCol cols="12" md="6">
@@ -300,18 +300,12 @@ const save = async () => {
 
             <VCol cols="12" md="6">
               <label>العنوان (عربي)</label>
-              <AppTextField
-                v-model="EditDto.addressAr"
-                class="mx-2"
-              />
+              <AppTextField v-model="EditDto.addressAr" class="mx-2" />
             </VCol>
 
             <VCol cols="12" md="6">
               <label>العنوان (إنجليزي)</label>
-              <AppTextField
-                v-model="EditDto.addressEn"
-                class="mx-2"
-              />
+              <AppTextField v-model="EditDto.addressEn" class="mx-2" />
             </VCol>
 
             <VCol cols="12" md="6">
@@ -379,26 +373,17 @@ const save = async () => {
 
             <VCol cols="12" md="6">
               <label>فيسبوك</label>
-              <AppTextField
-                v-model="EditDto.facebook"
-                class="mx-2"
-              />
+              <AppTextField v-model="EditDto.facebook" class="mx-2" />
             </VCol>
 
             <VCol cols="12" md="6">
               <label>إنستغرام</label>
-              <AppTextField
-                v-model="EditDto.instagram"
-                class="mx-2"
-              />
+              <AppTextField v-model="EditDto.instagram" class="mx-2" />
             </VCol>
 
             <VCol cols="12" md="6">
               <label>تويتر</label>
-              <AppTextField
-                v-model="EditDto.twitter"
-                class="mx-2"
-              />
+              <AppTextField v-model="EditDto.twitter" class="mx-2" />
             </VCol>
 
             <!-- Policies Section -->
@@ -501,6 +486,10 @@ const save = async () => {
                 color="primary"
                 class="mx-2"
               />
+            </VCol>
+            <VCol cols="12">
+              {{ EditDto.images }}
+              <FileUploader v-model:url="EditDto.images" />
             </VCol>
           </VRow>
 

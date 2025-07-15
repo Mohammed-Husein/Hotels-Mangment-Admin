@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { router } from "@/plugins/1.router";
+import { useHotelStore } from "../Hotels/hotel";
 import { FilterEmployeeDto } from "./api/dto";
 import { useEmployeeStore } from "./employee";
 
 const store = useEmployeeStore();
+const hotelStore = useHotelStore();
+const { HotelNames } = storeToRefs(hotelStore);
 const isLoading = ref<boolean>(false);
 const { FnExcute } = useTimerFn();
 const search = ref("");
@@ -31,6 +34,7 @@ const headers = computed(() => [
   },
   { title: "البريد الإلكتروني", key: "email", align: "center" },
   { title: "رقم الهاتف", key: "phoneNumber", align: "center" },
+  { title: " الفندق الذي يتبع له", key: "hotelName", align: "center" },
   { title: "المهام", key: "roleName", align: "center" },
   { title: "الحالة ", key: "status", align: "center" },
   {
@@ -53,8 +57,9 @@ const refetch = () => {
     search: filtersDto.value.search,
     role: filtersDto.value.role,
     status: filtersDto.value.status,
-    // SortColumn: filtersDto.value.SortColumn,
-    // SortOrder: filtersDto.value.SortOrder,
+    hotelId: filtersDto.value.hotelId,
+    sortOrder: filtersDto.value.sortOrder,
+    sortBy: filtersDto.value.sortBy,
   });
   isLoading.value = false;
 };
@@ -75,11 +80,11 @@ const updateOptions = (newOptions: optionsDto) => {
     filtersDto.value = {
       ...filtersDto.value,
       search: newOptions.search,
-      //   status: filtersDto.value.status,
-      //   RoleId: filtersDto.value.RoleId,
+      status: filtersDto.value.status,
+      hotelId: filtersDto.value.hotelId,
 
-      SortColumn: filtersDto.value.SortColumn,
-      SortOrder: filtersDto.value.SortOrder,
+      sortBy: filtersDto.value.sortBy,
+      sortOrder: filtersDto.value.sortOrder,
     };
     FnExcute(() => {
       isLoading.value = true;
@@ -131,8 +136,8 @@ const onSortByUpdate = (sortBy: Array<{ key: string; order: string }>) => {
     sortedColumnOrder.value = sortBy[0]?.order === "asc" ? "asc" : "desc";
 
     // Update filtersDto with sorting info
-    filtersDto.value.SortColumn = sortedColumnKey as any;
-    filtersDto.value.SortOrder = sortedColumnOrder as any;
+    filtersDto.value.sortBy = sortedColumnKey as any;
+    filtersDto.value.sortOrder = sortedColumnOrder as any;
   }
   refetch();
 };
@@ -140,6 +145,7 @@ onMounted(() => {
   isLoading.value = true;
   store.GetAllEmployees({ ...filtersDto.value });
   isLoading.value = false;
+  hotelStore.GetAllHotelNames();
 });
 // storeRole.GetAllNameRoles();
 </script>
@@ -167,15 +173,18 @@ onMounted(() => {
               clearable
               label="المهام*"
               :items="[
-                { title: 'الادمن', value: 'Admin' },
-                { title: 'المالك ', value: 'SuperAdmin' },
+                { title: 'مدير', value: 'Admin' },
+                { title: 'المدير العام ', value: 'SuperAdmin' },
+                { title: ' مدير فرع ', value: 'Manager' },
+                { title: 'موظف استقبال ', value: 'Receptionist' },
+                { title: 'موظف  ', value: 'worker' },
                 // { title: 'معطل ', value: 'Inactive' },
               ]"
               item-title="title"
               item-value="value"
               class="mx-2"
               @update:model-value="refetch"
-              style="max-inline-size: 490px; min-inline-size: 490px"
+              style="max-inline-size: 300px; min-inline-size: 300px"
             />
 
             <VAutocomplete
@@ -190,7 +199,17 @@ onMounted(() => {
               item-title="title"
               item-value="value"
               @update:model-value="refetch"
-              style="max-inline-size: 490px; min-inline-size: 490px"
+              style="max-inline-size: 300px; min-inline-size: 300px"
+            />
+            <VAutocomplete
+              v-model="filtersDto.hotelId"
+              clearable
+              label="الفندق "
+              :items="HotelNames"
+              item-title="name"
+              item-value="id"
+              @update:model-value="refetch"
+              style="max-inline-size: 300px; min-inline-size: 300px"
             />
           </div>
           <VDivider />

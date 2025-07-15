@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { requiredValidator, emailValidator, urlValidator } from "@/@core/utils/validators";
+import { requiredValidator, urlValidator } from "@/@core/utils/validators";
+import FileUploader from "@/components/shared/FileUploader.vue";
 import { useSettingStore } from "@/pages/setting/settiing";
 import { router } from "@/plugins/1.router";
 import { storeToRefs } from "pinia";
@@ -8,7 +9,6 @@ import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
 import type { AddHotelDto } from "./api/dto";
 import { useHotelStore } from "./hotel";
-import FileUploader from "@/components/shared/FileUploader.vue";
 
 const HotelForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
@@ -23,12 +23,13 @@ onMounted(async () => {
   await Promise.all([
     settingStore.GetAllCountryNames(),
     hotelStore.GetAllGovernorateNames(),
-    hotelStore.GetAllRegionNames()
+    hotelStore.GetAllRegionNames(),
   ]);
 });
 
 const AddDto = ref<AddHotelDto>({
   nameAr: "",
+  employeeId: "685444dedf0548ff8066e3d9",
   nameEn: "",
   type: "فندق",
   stars: 1,
@@ -55,6 +56,7 @@ const AddDto = ref<AddHotelDto>({
   smokingPolicyAr: "",
   smokingPolicyEn: "",
   isActive: true,
+  imagefile: "",
 });
 
 const hotelImage = ref<File | null>(null);
@@ -92,57 +94,79 @@ const save = async () => {
     AddLoading.value = true;
     try {
       const formData = new FormData();
-      
+
       // Add basic hotel data
-      formData.append('nameAr', AddDto.value.nameAr);
-      if (AddDto.value.nameEn) formData.append('nameEn', AddDto.value.nameEn);
-      formData.append('type', AddDto.value.type);
-      formData.append('stars', AddDto.value.stars.toString());
-      formData.append('countryId', AddDto.value.countryId);
-      formData.append('governorateId', AddDto.value.governorateId);
-      formData.append('regionId', AddDto.value.regionId);
-      
+      formData.append("nameAr", AddDto.value.nameAr);
+      if (AddDto.value.nameEn) formData.append("nameEn", AddDto.value.nameEn);
+      formData.append("type", AddDto.value.type);
+      formData.append("stars", AddDto.value.stars.toString());
+      formData.append("countryId", AddDto.value.countryId);
+      formData.append("governorateId", AddDto.value.governorateId);
+      formData.append("regionId", AddDto.value.regionId);
+
       // Add addresses
-      if (AddDto.value.addressAr) formData.append('addressAr', AddDto.value.addressAr);
-      if (AddDto.value.addressEn) formData.append('addressEn', AddDto.value.addressEn);
-      
+      if (AddDto.value.addressAr)
+        formData.append("addressAr", AddDto.value.addressAr);
+      if (AddDto.value.addressEn)
+        formData.append("addressEn", AddDto.value.addressEn);
+
       // Add descriptions
-      if (AddDto.value.descriptionAr) formData.append('descriptionAr', AddDto.value.descriptionAr);
-      if (AddDto.value.descriptionEn) formData.append('descriptionEn', AddDto.value.descriptionEn);
-      
+      if (AddDto.value.descriptionAr)
+        formData.append("descriptionAr", AddDto.value.descriptionAr);
+      if (AddDto.value.descriptionEn)
+        formData.append("descriptionEn", AddDto.value.descriptionEn);
+
       // Add location
-      if (AddDto.value.longitude) formData.append('longitude', AddDto.value.longitude.toString());
-      if (AddDto.value.latitude) formData.append('latitude', AddDto.value.latitude.toString());
-      
+      if (AddDto.value.longitude)
+        formData.append("longitude", AddDto.value.longitude.toString());
+      if (AddDto.value.latitude)
+        formData.append("latitude", AddDto.value.latitude.toString());
+
       // Add contact info
-      if (AddDto.value.website) formData.append('website', AddDto.value.website);
-      if (AddDto.value.facebook) formData.append('facebook', AddDto.value.facebook);
-      if (AddDto.value.instagram) formData.append('instagram', AddDto.value.instagram);
-      if (AddDto.value.twitter) formData.append('twitter', AddDto.value.twitter);
-      
+      if (AddDto.value.website)
+        formData.append("website", AddDto.value.website);
+      if (AddDto.value.facebook)
+        formData.append("facebook", AddDto.value.facebook);
+      if (AddDto.value.instagram)
+        formData.append("instagram", AddDto.value.instagram);
+      if (AddDto.value.twitter)
+        formData.append("twitter", AddDto.value.twitter);
+
       // Add policies
-      formData.append('checkIn', AddDto.value.checkIn);
-      formData.append('checkOut', AddDto.value.checkOut);
-      if (AddDto.value.cancellationPolicyAr) formData.append('cancellationPolicyAr', AddDto.value.cancellationPolicyAr);
-      if (AddDto.value.cancellationPolicyEn) formData.append('cancellationPolicyEn', AddDto.value.cancellationPolicyEn);
-      if (AddDto.value.petPolicyAr) formData.append('petPolicyAr', AddDto.value.petPolicyAr);
-      if (AddDto.value.petPolicyEn) formData.append('petPolicyEn', AddDto.value.petPolicyEn);
-      if (AddDto.value.smokingPolicyAr) formData.append('smokingPolicyAr', AddDto.value.smokingPolicyAr);
-      if (AddDto.value.smokingPolicyEn) formData.append('smokingPolicyEn', AddDto.value.smokingPolicyEn);
-      
+      formData.append("checkIn", AddDto.value.checkIn);
+      formData.append("checkOut", AddDto.value.checkOut);
+      if (AddDto.value.cancellationPolicyAr)
+        formData.append(
+          "cancellationPolicyAr",
+          AddDto.value.cancellationPolicyAr
+        );
+      if (AddDto.value.cancellationPolicyEn)
+        formData.append(
+          "cancellationPolicyEn",
+          AddDto.value.cancellationPolicyEn
+        );
+      if (AddDto.value.petPolicyAr)
+        formData.append("petPolicyAr", AddDto.value.petPolicyAr);
+      if (AddDto.value.petPolicyEn)
+        formData.append("petPolicyEn", AddDto.value.petPolicyEn);
+      if (AddDto.value.smokingPolicyAr)
+        formData.append("smokingPolicyAr", AddDto.value.smokingPolicyAr);
+      if (AddDto.value.smokingPolicyEn)
+        formData.append("smokingPolicyEn", AddDto.value.smokingPolicyEn);
+
       // Add amenities
       if (AddDto.value.amenities.length > 0) {
-        AddDto.value.amenities.forEach(amenity => {
-          formData.append('amenities[]', amenity);
+        AddDto.value.amenities.forEach((amenity) => {
+          formData.append("amenities[]", amenity);
         });
       }
-      
+
       // Add status
-      formData.append('isActive', AddDto.value.isActive.toString());
-      
+      formData.append("isActive", AddDto.value.isActive.toString());
+
       // Add image
       if (hotelImage.value) {
-        formData.append('hotelImage', hotelImage.value);
+        formData.append("hotelImage", hotelImage.value);
       }
 
       const response = await hotelStore.AddHotel(AddDto.value);
@@ -176,7 +200,7 @@ const save = async () => {
       <div class="flex justify-between">
         <h3 class="mb-4 mt-4 mx-5">معلومات الفندق</h3>
       </div>
-      
+
       <VRow class="mb-5 mx-1 mt-7">
         <!-- Basic Information Section -->
         <VCol cols="12">
@@ -195,15 +219,12 @@ const save = async () => {
             :rules="[requiredValidator]"
           />
         </VCol>
-        
+
         <VCol cols="12" md="6">
           <label>اسم الفندق (إنجليزي)</label>
-          <AppTextField
-            v-model="AddDto.nameEn"
-            class="mx-2"
-          />
+          <AppTextField v-model="AddDto.nameEn" class="mx-2" />
         </VCol>
-        
+
         <VCol cols="12" md="6">
           <label>نوع الفندق <span class="text-error">*</span></label>
           <VSelect
@@ -215,7 +236,7 @@ const save = async () => {
             :rules="[requiredValidator]"
           />
         </VCol>
-        
+
         <VCol cols="12" md="6">
           <label>تصنيف النجوم <span class="text-error">*</span></label>
           <VSelect
@@ -248,7 +269,7 @@ const save = async () => {
             :rules="[requiredValidator]"
           />
         </VCol>
-        
+
         <VCol cols="12" md="4">
           <label>المحافظة <span class="text-error">*</span></label>
           <VAutocomplete
@@ -260,7 +281,7 @@ const save = async () => {
             :rules="[requiredValidator]"
           />
         </VCol>
-        
+
         <VCol cols="12" md="4">
           <label>المنطقة <span class="text-error">*</span></label>
           <VAutocomplete
@@ -276,20 +297,12 @@ const save = async () => {
         <!-- Address Information -->
         <VCol cols="12" md="6">
           <label>العنوان (عربي)</label>
-          <VTextarea
-            v-model="AddDto.addressAr"
-            class="mx-2"
-            rows="3"
-          />
+          <VTextarea v-model="AddDto.addressAr" class="mx-2" rows="3" />
         </VCol>
-        
+
         <VCol cols="12" md="6">
           <label>العنوان (إنجليزي)</label>
-          <VTextarea
-            v-model="AddDto.addressEn"
-            class="mx-2"
-            rows="3"
-          />
+          <VTextarea v-model="AddDto.addressEn" class="mx-2" rows="3" />
         </VCol>
 
         <!-- Description Section -->
@@ -303,20 +316,12 @@ const save = async () => {
 
         <VCol cols="12" md="6">
           <label>وصف الفندق (عربي)</label>
-          <VTextarea
-            v-model="AddDto.descriptionAr"
-            class="mx-2"
-            rows="4"
-          />
+          <VTextarea v-model="AddDto.descriptionAr" class="mx-2" rows="4" />
         </VCol>
 
         <VCol cols="12" md="6">
           <label>وصف الفندق (إنجليزي)</label>
-          <VTextarea
-            v-model="AddDto.descriptionEn"
-            class="mx-2"
-            rows="4"
-          />
+          <VTextarea v-model="AddDto.descriptionEn" class="mx-2" rows="4" />
         </VCol>
 
         <!-- Location Coordinates -->
@@ -406,20 +411,12 @@ const save = async () => {
 
         <VCol cols="12" md="6">
           <label>وقت تسجيل الوصول</label>
-          <AppTextField
-            v-model="AddDto.checkIn"
-            type="time"
-            class="mx-2"
-          />
+          <AppTextField v-model="AddDto.checkIn" type="time" class="mx-2" />
         </VCol>
 
         <VCol cols="12" md="6">
           <label>وقت تسجيل المغادرة</label>
-          <AppTextField
-            v-model="AddDto.checkOut"
-            type="time"
-            class="mx-2"
-          />
+          <AppTextField v-model="AddDto.checkOut" type="time" class="mx-2" />
         </VCol>
 
         <!-- Policies -->
@@ -521,7 +518,7 @@ const save = async () => {
         <VCol cols="12">
           <label>صورة الفندق</label>
           <FileUploader
-            v-model="hotelImage"
+            v-model="AddDto.imagefile"
             accept="image/*"
             :maxSize="10"
             placeholder="اختر صورة الفندق"

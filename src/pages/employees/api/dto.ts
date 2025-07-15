@@ -36,6 +36,7 @@ export class FilterEmployeeDto {
   sortOrder: null | string = null;
   sortBy: null | string = null;
   status: null | string = null;
+  hotelId: null | string = null;
 }
 
 export class AddEmployeeDto {
@@ -49,6 +50,8 @@ export class AddEmployeeDto {
   countryId = "";
   cityId = "";
   regionId = "";
+  hotelId = "";
+  taskDescription = "";
   status = "Active";
   permissions: string[] = [];
   notes = "";
@@ -75,6 +78,8 @@ export class DetailsEmployeeDto {
   lastSeen = "";
   hireDate = "";
   notes = "";
+  hotelId = "";
+  taskDescription = "";
   permissions: string[] = [];
   deviceToken = "";
   createdAt = "";

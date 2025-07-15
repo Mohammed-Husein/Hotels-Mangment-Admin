@@ -1,5 +1,10 @@
 import { useApi, usePagination } from "@/composables";
-import type { AddHotelDto, GetAllHotelsDto, HotelFiltersDto, ModifyHotelDto } from "./api/dto";
+import type {
+  AddHotelDto,
+  GetAllHotelsDto,
+  HotelFiltersDto,
+  ModifyHotelDto,
+} from "./api/dto";
 import { DetailsHotelDto } from "./api/dto";
 import { HOTEL_API } from "./api/endpoint";
 
@@ -40,25 +45,15 @@ export const useHotelStore = defineStore("Hotels", () => {
     paginationHotel.value.totalCount = response.data?.data?.count || 0;
   }
 
-  async function GetAllHotelNames() {
-    const response = await GET<any>(
-      HOTEL_API.GetAll,
-      { limit: 1000 },
-      {},
-      {}
-    );
+  // async function GetAllHotelNames() {
+  //   const response = await GET<any>(HOTEL_API.GetAll, { limit: 1000 }, {}, {});
 
-    HotelNames.value = response.data?.data?.hotels || [];
-  }
+  //   HotelNames.value = response.data?.data?.hotels || [];
+  // }
 
   // Get All Governorates Names (independent)
   async function GetAllGovernorateNames() {
-    const response = await GET<any>(
-      "governorates/names",
-      {},
-      {},
-      {}
-    );
+    const response = await GET<any>("governorates/names", {}, {}, {});
 
     CitiesList.value = response.data?.data?.governorates || [];
     return response.data?.data?.governorates || [];
@@ -66,12 +61,7 @@ export const useHotelStore = defineStore("Hotels", () => {
 
   // Get All Regions Names (independent)
   async function GetAllRegionNames() {
-    const response = await GET<any>(
-      "regions/names",
-      {},
-      {},
-      {}
-    );
+    const response = await GET<any>("regions/names", {}, {}, {});
 
     RegionsList.value = response.data?.data?.regions || [];
     return response.data?.data?.regions || [];
@@ -96,9 +86,7 @@ export const useHotelStore = defineStore("Hotels", () => {
 
   // GetDetails Hotel
   async function GetDetailsHotel(id: string) {
-    const response = await GET<any>(
-      `${HOTEL_API.GetById}/${id}`
-    );
+    const response = await GET<any>(`${HOTEL_API.GetById}/${id}`);
 
     if (response.data && response.data.data && response.data.data.hotel) {
       HotelDetails.value = response.data.data.hotel;
@@ -146,6 +134,11 @@ export const useHotelStore = defineStore("Hotels", () => {
     HotelList.value = HotelList.value?.filter(
       (item: any) => !ids.includes(item.id)
     );
+  }
+  async function GetAllHotelNames() {
+    const response = await GET<any>(HOTEL_API.name, {}, {}, {});
+
+    HotelNames.value = response.data?.data?.hotels || [];
   }
 
   return {
