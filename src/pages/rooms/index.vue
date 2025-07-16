@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { useHotelStore } from "../Hotels/hotel";
 import { FilterRoomDto } from "./api/dto";
 import { useRoomsStore } from "./room";
 
 const store = useRoomsStore();
+const hotelStore = useHotelStore();
+const router = useRouter();
 const filtersDto = ref(new FilterRoomDto());
 const { RoomList, paginationRoom } = storeToRefs(store);
+const { HotelNames } = storeToRefs(hotelStore);
+
+// Loading state
+const isLoading = ref(false);
 class optionsDto {
   groupBy = [];
   itemsPerPage = 8;
@@ -62,7 +69,47 @@ const refetch = () => {
   paginationRoom.value.limit = options.value.itemsPerPage;
   store.GetAllRooms({ ...filtersDto.value });
 };
-onMounted(() => {
+
+// Update options handler
+const updateOptions = (newOptions: any) => {
+  options.value = { ...options.value, ...newOptions };
+  refetch();
+};
+
+// Delete single item
+const deleteSingleItem = async (item: any) => {
+  try {
+    await store.DeleteRoom(
+      [item.id],
+      item.nameAr || item.nameEn || `رقم ${item.numberRoom}`
+    );
+    // Refresh the list after deletion
+    refetch();
+  } catch (error) {
+    console.error("Error deleting room:", error);
+  }
+};
+// Room types options
+const roomTypes = ref([
+  { title: "جناح", value: "sweet" },
+  { title: "غرفة مفردة", value: "singleRoom" },
+  { title: "غرفة مزدوجة", value: "doubleRoom" },
+  { title: "جناح فاخر", value: "suite" },
+  { title: "ديلوكس", value: "deluxe" },
+  { title: "عادية", value: "standard" },
+]);
+
+// Status options
+const statusOptions = ref([
+  { title: "متوفرة", value: "Available" },
+  { title: "محجوزة", value: "Reserved" },
+  { title: "غير نشطة", value: "Inactive" },
+]);
+
+onMounted(async () => {
+  // Load hotel names for filter
+  await hotelStore.GetAllHotelNames();
+  // Load rooms
   store.GetAllRooms({ ...filtersDto.value });
 });
 </script>
@@ -80,6 +127,10 @@ onMounted(() => {
           <VAutocomplete
             label="الفندق"
             v-model="filtersDto.hotelId"
+            :items="HotelNames"
+            item-title="name.ar"
+            item-value="id"
+            clearable
             @update:model-value="refetch"
           ></VAutocomplete>
         </VCol>
@@ -87,17 +138,21 @@ onMounted(() => {
           <VAutocomplete
             label="نوع الغرفة"
             v-model="filtersDto.type"
+            :items="roomTypes"
+            item-title="title"
+            item-value="value"
+            clearable
             @update:model-value="refetch"
           ></VAutocomplete>
         </VCol>
         <VCol cols="12" md="4">
           <VAutocomplete
-            label="الحالة "
+            label="الحالة"
             v-model="filtersDto.status"
-            :itmes="[
-              { title: 'نشط', value: 'Active' },
-              { title: 'غير نشط', value: 'Unactive' },
-            ]"
+            :items="statusOptions"
+            item-title="title"
+            item-value="value"
+            clearable
             @update:model-value="refetch"
           ></VAutocomplete>
         </VCol>
@@ -135,7 +190,7 @@ onMounted(() => {
           />
           <!-- pdf excel -->
 
-          <VBtn class="mt-1 mx-1">
+          <VBtn class="mt-1 mx-1" @click="router.push('/rooms/add')">
             إضافة غرفة<VIcon class="px-1"> tabler-plus </VIcon>
           </VBtn>
         </div>
@@ -164,7 +219,7 @@ onMounted(() => {
     >
       <template #item.actions="{ item }">
         <div class="d-flex gap-1 justify-center align-center">
-          <IconBtn @click="router.push(`/customer/${item.id}`)">
+          <IconBtn @click="router.push(`/rooms/${item.id}`)">
             <VIcon icon="tabler-edit" />
           </IconBtn>
           <IconBtn @click="deleteSingleItem(item)">
@@ -174,12 +229,13 @@ onMounted(() => {
       </template>
 
       <template #item.isBooked="{ item }">
-        <div v-if="item.isBooked === false" class="">
-          <VChip color="success "> متوافر </VChip>
-        </div>
-        <div v-if="item.isBooked === true" class="">
-          <VChip color="error "> محجوز</VChip>
-        </div>
+        <VChip
+          :color="
+            !item.isBooked || item.isBooked === 'false' ? 'success' : 'error'
+          "
+        >
+          {{ !item.isBooked || item.isBooked === "false" ? "متوافر" : "محجوز" }}
+        </VChip>
       </template>
       <template #bottom>
         <VDivider />

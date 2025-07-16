@@ -27,31 +27,65 @@ export class rooms {
   images: null | File = null;
   services: null | File = null;
 }
-/* *    const formattedRooms = roomsWithBookingInfo.map(room => ({
-        id: room._id,
-        nameAr: room.name?.ar,
-        nameEn: room.name?.en,
-        hotelName: room.hotel?.name?.ar || room.hotel?.name?.en || 'غير محدد',
-        type: room.type,
-        numberRoom: room.numberRoom,
-        isBooked: room.activeBooking ? true : false,
-        currentBooking: room.activeBooking ? {
-            customerName: room.activeBooking.customerName,
-            checkInDate: room.activeBooking.checkInDate,
-            checkOutDate: room.activeBooking.checkOutDate,
-            paymentMethodName: room.activeBooking.paymentMethodName
-        } : null,
-        futureBookings: room.futureBookings || [],
-        bookedDates: room.futureBookings?.map(booking => ({
-            from: booking.checkInDate,
-            to: booking.checkOutDate,
-            status: booking.status,
-            customerName: booking.customerName
-        })) || [],
-        pricePerNight: room.price || 0,
-        images: room.images || [],
-        services: room.services ? Object.fromEntries(room.services) : {},
-        createdAt: room.createdAt,
-        updatedAt: room.updatedAt
-    }));
- */
+export class AddRoomDto {
+  nameAr = "";
+  nameEn = "";
+  hotelId = "";
+  type = "standard";
+  numberRoom = "";
+  price = 0;
+  bedsCount = 1;
+  description = "";
+  services = new Map<string, string>();
+  status = "Available";
+  isAvailableForBooking = true;
+  roomImages: File[] = [];
+}
+
+export class DetailsRoomDto {
+  id = "";
+  name = {
+    ar: "",
+    en: "",
+  };
+  hotel = {
+    id: "",
+    name: {
+      ar: "",
+      en: "",
+    },
+  };
+  type = "";
+  numberRoom = "";
+  price = 0;
+  bedsCount = 1;
+  description = "";
+  images: string[] = [];
+  services = new Map<string, string>();
+  status = "Available";
+  isAvailableForBooking = true;
+  futureBooking = {
+    isBooked: false,
+    bookedFrom: "",
+    bookedTo: "",
+    bookingNote: "",
+  };
+  createdAt = "";
+  updatedAt = "";
+}
+
+export class ModifyRoomDto {
+  id = "";
+  nameAr = "";
+  nameEn = "";
+  hotelId = "";
+  type = "standard";
+  numberRoom = "";
+  price = 0;
+  bedsCount = 1;
+  description = "";
+  services = new Map<string, string>();
+  status = "Available";
+  isAvailableForBooking = true;
+  roomImages: File[] = [];
+}
