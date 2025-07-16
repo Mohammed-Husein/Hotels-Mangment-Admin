@@ -55,6 +55,7 @@ declare module 'vue-router/auto/routes' {
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'profile': RouteRecordInfo<'profile', '/profile', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
+    'rooms': RouteRecordInfo<'rooms', '/rooms', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
     'setting': RouteRecordInfo<'setting', '/setting', Record<never, never>, Record<never, never>>,
     'setting-components-city': RouteRecordInfo<'setting-components-city', '/setting/components/city', Record<never, never>, Record<never, never>>,
