@@ -7,13 +7,13 @@ import { onMounted, ref } from "vue";
 import { useToast } from "vue-toastification";
 import { VForm } from "vuetify/lib/components/index.mjs";
 import { useHotelStore } from "../Hotels/hotel";
+import { AddRoomDto } from "./api/dto";
 import { useRoomsStore } from "./room";
-
 const RoomForm = ref<VForm | null>(null);
 const AddLoading = ref(false);
 const hotelStore = useHotelStore();
 const roomStore = useRoomsStore();
-
+const AddDto = ref<AddRoomDto>(new AddRoomDto());
 const { HotelNames } = storeToRefs(hotelStore);
 
 // Load hotels on component mount
@@ -22,20 +22,20 @@ onMounted(async () => {
 });
 
 // Room form data
-const AddDto = ref({
-  nameAr: "",
-  nameEn: "",
-  hotelId: "",
-  type: "standard",
-  numberRoom: "",
-  price: 0,
-  bedsCount: 1,
-  description: "",
-  services: new Map<string, string>(),
-  status: "Available",
-  isAvailableForBooking: true,
-  roomImages: [] as File[],
-});
+// const AddDto = ref({
+//   nameAr: "",
+//   nameEn: "",
+//   hotelId: "",
+//   type: "standard",
+//   numberRoom: "",
+//   price: 0,
+//   bedsCount: 0,
+//   description: "",
+//   services: new Map<string, string>(),
+//   status: "Available",
+//   isAvailableForBooking: true,
+//   roomImages: [] as File[],
+// });
 
 // Room types options
 const roomTypes = ref([
@@ -67,7 +67,7 @@ const handleSubmit = async () => {
     try {
       // Create FormData for file upload
 
-      const response = await roomStore.AddRoom(AddDto.value);
+      const response = await roomStore.AddRoom({ ...AddDto.value });
       toast.success("تمت إضافة الغرفة بنجاح");
       router.go(-1);
     } catch (error) {
@@ -137,12 +137,11 @@ const handleFileUpload = (files: File[]) => {
           />
         </VCol>
         <VCol cols="12" md="6">
-          <label>رقم الغرفة <span class="text-error">*</span></label>
-          <AppTextField
-            v-model="AddDto.numberRoom"
-            class="mx-2"
-            :rules="[requiredValidator]"
-          />
+          <label
+            >رقم الغرفة (في حال لم يتم دخال رقم الغرفة سيولد النظام رقم غرفة
+            تلقائيا)</label
+          >
+          <AppTextField v-model="AddDto.numberRoom" class="mx-2" />
         </VCol>
         <VCol cols="12" md="6">
           <label>السعر لليلة الواحدة <span class="text-error">*</span></label>
@@ -180,7 +179,7 @@ const handleFileUpload = (files: File[]) => {
         <VCol cols="12">
           <label>صور الغرفة</label>
           <FileUploader
-            @files-uploaded="handleFileUpload"
+            v-model="AddDto.roomImages"
             :multiple="true"
             accept="image/*"
             class="mx-2"

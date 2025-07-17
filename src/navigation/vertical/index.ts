@@ -17,7 +17,12 @@ export default [
   {
     title: "الفنادق",
     to: { name: "hotels" },
-    icon: { icon: "tabler-user" },
+    icon: { icon: "tabler-building" },
+  },
+  {
+    title: "الغرف",
+    to: { name: "rooms" },
+    icon: { icon: "tabler-door" },
   },
   {
     title: "الاعدادت",

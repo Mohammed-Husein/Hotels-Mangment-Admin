@@ -1,5 +1,5 @@
 import { useApi, usePagination } from "@/composables";
-import type { FilterRoomDto, GetAllRooms } from "./api/dto";
+import type { AddRoomDto, FilterRoomDto, GetAllRooms } from "./api/dto";
 import { ROOM_API } from "./api/endpoint";
 
 export const useRoomsStore = defineStore("room", () => {
@@ -11,7 +11,7 @@ export const useRoomsStore = defineStore("room", () => {
   };
 
   const RoomList = ref<GetAllRooms["rooms"]>([]);
-  const RoomDetails = ref<any>({});
+  const RoomDetails = ref<any>([]);
   const paginationRoom = createPagination();
 
   // Get All Rooms
@@ -42,7 +42,7 @@ export const useRoomsStore = defineStore("room", () => {
   }
 
   // Add Room
-  async function AddRoom(payload: FormData) {
+  async function AddRoom(payload: AddRoomDto) {
     const response = await POST(
       ROOM_API.Add,
       payload,
@@ -60,7 +60,7 @@ export const useRoomsStore = defineStore("room", () => {
 
   // Modify Room
   async function ModifyRoom(id: string, payload: FormData) {
-    const response = await PUT(
+    const response = await POST(
       `${ROOM_API.Modify}/${id}`,
       payload,
       { error: true, success: "تم تحديث الغرفة بنجاح" },
@@ -77,10 +77,10 @@ export const useRoomsStore = defineStore("room", () => {
   }
 
   // Delete Room
-  async function DeleteRoom(ids: string[], itemName: string) {
+  async function DeleteRoom(ids: string, itemName: string) {
     await DELETE(
-      ROOM_API.Delete,
-      ids,
+      ` ${ROOM_API.Delete}/${ids}`,
+      {},
       {},
       {
         comfirm: {

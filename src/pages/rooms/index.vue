@@ -79,10 +79,7 @@ const updateOptions = (newOptions: any) => {
 // Delete single item
 const deleteSingleItem = async (item: any) => {
   try {
-    await store.DeleteRoom(
-      [item.id],
-      item.nameAr || item.nameEn || `رقم ${item.numberRoom}`
-    );
+    await store.DeleteRoom(item.id, item.numberRoom);
     // Refresh the list after deletion
     refetch();
   } catch (error) {
@@ -105,7 +102,27 @@ const statusOptions = ref([
   { title: "محجوزة", value: "Reserved" },
   { title: "غير نشطة", value: "Inactive" },
 ]);
+const dialog = ref(false);
+const isMouseOverImage = ref(false);
+const currentImage = ref();
+const { getFileUrl } = useFile();
 
+function showImage(imageUrl: any) {
+  if (imageUrl) {
+    currentImage.value = getFileUrl(imageUrl);
+    dialog.value = true;
+    setTimeout(() => (dialog.value = false), 3000);
+  }
+}
+function handleMouseLeave() {
+  isMouseOverImage.value = false;
+  // Hide image with a small delay to prevent flickering
+  setTimeout(() => {
+    if (!isMouseOverImage.value) {
+      dialog.value = false;
+    }
+  }, 100);
+}
 onMounted(async () => {
   // Load hotel names for filter
   await hotelStore.GetAllHotelNames();
@@ -114,7 +131,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <h3 class="text-primary mb-5">الغرف <VIcon> tabler-building </VIcon></h3>
+  <h3 class="text-primary mb-5">الغرف <VIcon> tabler-door </VIcon></h3>
   <VCard>
     <VCardText>
       <div class="flex justify-between">
@@ -162,7 +179,7 @@ onMounted(async () => {
         <div class="flex justify-center items-center flex-wrap gap-4">
           <AppTextField
             clearable
-            placeholder="البحث عن اسم العميل , اسم الشركة  "
+            placeholder="البحث عن اسم الغرفة ,  رقم الغرفة  "
             class="mt-5"
             style="max-inline-size: 300px; min-inline-size: 300px"
             v-model="filtersDto.search"
@@ -217,6 +234,37 @@ onMounted(async () => {
       @update:options="updateOptions"
       @update:sort-by="onSortByUpdate"
     >
+      <template #item.numberRoom="{ item }">
+        <div class="d-flex align-center">
+          <VAvatar
+            size="32"
+            :color="item.images[0] ? '' : 'primary'"
+            :class="item.images[0] ? '' : 'v-avatar-light-bg primary--text'"
+            :variant="!item.images[0] ? 'tonal' : undefined"
+            style="cursor: pointer"
+            @mouseover="showImage(item.images[0])"
+          >
+            <VImg v-if="item.images[0]" :src="getFileUrl(item.images[0])" />
+            <span v-else>{{ avatarText(item.name) }}</span>
+          </VAvatar>
+          <div class="d-flex flex-column ms-3">
+            <span>{{ item.numberRoom }}</span>
+          </div>
+          <!-- Dialog for enlarged image -->
+          <VDialog v-model="dialog" max-width="500px" class="dialog" persistent>
+            <div
+              @mouseenter="isMouseOverImage = true"
+              @mouseleave="handleMouseLeave"
+            >
+              <VImg
+                :src="currentImage"
+                class="ma-4 w-full"
+                aspect-ratio="1.7"
+              />
+            </div>
+          </VDialog>
+        </div>
+      </template>
       <template #item.actions="{ item }">
         <div class="d-flex gap-1 justify-center align-center">
           <IconBtn @click="router.push(`/rooms/${item.id}`)">
@@ -259,3 +307,17 @@ onMounted(async () => {
     ></VDataTableServer>
   </VCard>
 </template>
+<style>
+/* .v-avatar:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+} */
+.dialog .v-card--variant-elevated {
+  background: none !important;
+}
+
+.v-overlay__scrim {
+  backdrop-filter: blur(0.5px);
+  background: transparent !important;
+}
+</style>

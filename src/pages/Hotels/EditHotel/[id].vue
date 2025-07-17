@@ -516,6 +516,19 @@ const save = async () => {
       </VForm>
     </div>
   </div>
+  <div class="flex justify-end pa-6">
+    <VBtn
+      variant="tonal"
+      color="error"
+      @click="router.go(-1)"
+      :disabled="EditLoading"
+    >
+      إلغاء
+    </VBtn>
+    <VBtn color="primary" @click="save" :loading="EditLoading" class="ms-3">
+      حفظ
+    </VBtn>
+  </div>
 </template>
 
 <style scoped>

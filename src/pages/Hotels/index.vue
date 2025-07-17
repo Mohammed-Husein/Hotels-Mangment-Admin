@@ -313,10 +313,10 @@ const deleteHotel = async (hotel: any) => {
 
               <!-- Hotel Info -->
               <div class="d-flex align-center mb-2">
-                <VIcon size="16" color="primary" class="me-2"
-                  >tabler-user</VIcon
+                <VIcon size="16" color="primary" class="me-2">tabler-sun</VIcon>
+                <span class="text-body-2"
+                  >المدينة({{ hotel.countryName }})</span
                 >
-                <span class="text-body-2">{{ getEmployeeName(hotel) }}</span>
               </div>
 
               <div class="d-flex align-center mb-2">
@@ -339,14 +339,12 @@ const deleteHotel = async (hotel: any) => {
 
               <!-- Hotel Stars -->
               <div class="d-flex align-center mb-3">
-                <VRating
-                  :model-value="hotel.stars"
-                  readonly
-                  size="small"
-                  color="amber"
-                  density="compact"
-                />
-                <span class="text-caption ms-2">({{ hotel.stars }})</span>
+                <VChip v-if="hotel.isActive === true" color="success"
+                  >نشط</VChip
+                >
+                <VChip v-if="hotel.isActive === false" color="error"
+                  >غير نشط</VChip
+                >
               </div>
             </VCardText>
 
