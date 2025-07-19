@@ -12,6 +12,16 @@ const { HotelNames } = storeToRefs(hotelStore);
 
 // Loading state
 const isLoading = ref(false);
+
+// حالات الحجز المتاحة
+const bookingStatusOptions = [
+  { title: "في الانتظار", value: "pending" },
+  { title: "مؤكد", value: "confirmed" },
+  { title: "تم الوصول", value: "checked_in" },
+  { title: "تم المغادرة", value: "checked_out" },
+  { title: "ملغي", value: "cancelled" },
+  { title: "لم يحضر", value: "no_show" },
+];
 class optionsDto {
   groupBy = [];
   itemsPerPage = 8;
@@ -60,19 +70,21 @@ const headers = computed(() => [
     sortable: false,
   },
 ]);
-// const onSortByUpdate = (sortBy: Array<{ key: string; order: string }>) => {
-//   if (sortBy.length > 0) {
-//     const formattedKey =
-//       sortBy[0].key.charAt(0).toUpperCase() + sortBy[0].key.slice(1);
+// Sorting handler
+const onSortByUpdate = (sortBy: Array<{ key: string; order: string }>) => {
+  if (sortBy.length > 0) {
+    const formattedKey =
+      sortBy[0].key.charAt(0).toUpperCase() + sortBy[0].key.slice(1);
 
-//     sortedColumnKey.value = formattedKey;
-//     sortedColumnOrder.value = sortBy[0].order === "asc" ? "asc" : "desc"; // 'asc' or 'desc'
+    sortedColumnKey.value = formattedKey;
+    sortedColumnOrder.value = sortBy[0].order === "asc" ? "asc" : "desc";
 
-//     // Update filtersDto with sorting info
-//     filtersDto.value.sortBy = sortedColumnKey as any;
-//     filtersDto.value.sortOrder = sortedColumnOrder as any;
-//   }
-// };
+    // Update filtersDto with sorting info
+    filtersDto.value.sortBy = sortedColumnKey as any;
+    filtersDto.value.sortOrder = sortedColumnOrder as any;
+  }
+};
+
 const refetch = () => {
   paginationBooking.value.currentPage = 1;
   paginationBooking.value.limit = options.value.itemsPerPage;
@@ -86,39 +98,66 @@ const updateOptions = (newOptions: any) => {
 };
 
 // Delete single item
-// const deleteSingleItem = async (item: any) => {
-//   try {
-//     const delte = [item.id];
-//     await store.DeleteRoom(item.id, item.numberRoom);
-//     // Refresh the list after deletion
-//     refetch();
-//   } catch (error) {
-//     console.error("Error deleting room:", error);
-//   }
-// };
-// Room types options
-
-const dialog = ref(false);
-const isMouseOverImage = ref(false);
-const currentImage = ref();
-const { getFileUrl } = useFile();
-
-function showImage(imageUrl: any) {
-  if (imageUrl) {
-    currentImage.value = getFileUrl(imageUrl);
-    dialog.value = true;
-    setTimeout(() => (dialog.value = false), 3000);
+const deleteSingleItem = async (item: any) => {
+  try {
+    // TODO: Implement delete booking functionality
+    console.log("Delete booking:", item.id);
+    // await store.DeleteBooking(item.id);
+    // Refresh the list after deletion
+    // refetch();
+  } catch (error) {
+    console.error("Error deleting booking:", error);
   }
-}
-function handleMouseLeave() {
-  isMouseOverImage.value = false;
-  // Hide image with a small delay to prevent flickering
-  setTimeout(() => {
-    if (!isMouseOverImage.value) {
-      dialog.value = false;
-    }
-  }, 100);
-}
+};
+
+// Navigation functions
+const navigateToAddBooking = () => {
+  router.push("/booking/add");
+};
+
+const navigateToEditBooking = (bookingId: string | null) => {
+  if (bookingId) {
+    router.push(`/booking/${bookingId}`);
+  }
+};
+
+// Helper functions for status display
+const getStatusColor = (status: string | null) => {
+  switch (status) {
+    case "pending":
+      return "warning";
+    case "confirmed":
+      return "info";
+    case "checked_in":
+      return "success";
+    case "checked_out":
+      return "primary";
+    case "cancelled":
+      return "error";
+    case "no_show":
+      return "secondary";
+    default:
+      return "default";
+  }
+};
+
+const getStatusText = (status: string | null) => {
+  const statusOption = bookingStatusOptions.find(
+    (option) => option.value === status
+  );
+  return statusOption ? statusOption.title : "غير محدد";
+};
+
+// Format date helper
+const formatDate = (dateString: string) => {
+  if (!dateString) return "غير محدد";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ar-SA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
 onMounted(async () => {
   // Load hotel names for filter
   await hotelStore.GetAllHotelNames();
@@ -127,7 +166,9 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <h3 class="text-primary mb-5">الغرف <VIcon> tabler-door </VIcon></h3>
+  <h3 class="text-primary mb-5">
+    الحجوزات <VIcon> tabler-calendar-event </VIcon>
+  </h3>
   <VCard>
     <VCardText>
       <div class="flex justify-between">
@@ -138,8 +179,9 @@ onMounted(async () => {
       <VRow>
         <VCol cols="12" md="12">
           <VAutocomplete
-            label="الحالة"
+            label="حالة الحجز"
             v-model="filtersDto.status"
+            :items="bookingStatusOptions"
             item-title="title"
             item-value="value"
             clearable
@@ -152,7 +194,7 @@ onMounted(async () => {
         <div class="flex justify-center items-center flex-wrap gap-4">
           <AppTextField
             clearable
-            placeholder="البحث عن اسم العميل ,  رقم الغرفة  "
+            placeholder="البحث عن اسم العميل، رقم الحجز، رقم الغرفة"
             class="mt-5"
             style="max-inline-size: 300px; min-inline-size: 300px"
             v-model="filtersDto.search"
@@ -180,8 +222,8 @@ onMounted(async () => {
           />
           <!-- pdf excel -->
 
-          <VBtn class="mt-1 mx-1" @click="router.push('/rooms/add')">
-            إضافة غرفة<VIcon class="px-1"> tabler-plus </VIcon>
+          <VBtn class="mt-1 mx-1" @click="navigateToAddBooking">
+            إضافة حجز<VIcon class="px-1"> tabler-plus </VIcon>
           </VBtn>
         </div>
       </div>
@@ -207,15 +249,34 @@ onMounted(async () => {
       @update:options="updateOptions"
       @update:sort-by="onSortByUpdate"
     >
-      <template #item.checkInDate="{ item }"
-        ><span>{{ formatDate(item.checkInDate) }}</span>
+      <template #item.checkInDate="{ item }">
+        <span>{{
+          item.checkInDate ? formatDate(item.checkInDate) : "غير محدد"
+        }}</span>
       </template>
-      <template #item.checkOutDate="{ item }"
-        ><span>{{ formatDate(item.checkOutDate) }}</span>
+      <template #item.checkOutDate="{ item }">
+        <span>{{
+          item.checkOutDate ? formatDate(item.checkOutDate) : "غير محدد"
+        }}</span>
+      </template>
+      <template #item.status="{ item }">
+        <VChip
+          :color="getStatusColor(item.status)"
+          size="small"
+          variant="tonal"
+        >
+          {{ getStatusText(item.status) }}
+        </VChip>
+      </template>
+      <template #item.totalAmount="{ item }">
+        <span class="font-weight-medium">{{ item.totalAmount || 0 }} ل.س</span>
+      </template>
+      <template #item.discount="{ item }">
+        <span>{{ item.discount || 0 }} ل.س</span>
       </template>
       <template #item.actions="{ item }">
         <div class="d-flex gap-1 justify-center align-center">
-          <IconBtn @click="router.push(`/rooms/${item.id}`)">
+          <IconBtn @click="navigateToEditBooking(item.id)">
             <VIcon icon="tabler-edit" />
           </IconBtn>
           <IconBtn @click="deleteSingleItem(item)">
@@ -239,24 +300,20 @@ onMounted(async () => {
               v-model="paginationBooking.currentPage"
               :total-visible="5"
               :length="paginationBooking.totalPages"
-              @update:model-value="store.GetAllRooms({ ...filtersDto })"
+              @update:model-value="store.GetAllBookings({ ...filtersDto })"
             />
           </div>
         </VCardText> </template
     ></VDataTableServer>
   </VCard>
 </template>
-<style>
-/* .v-avatar:hover {
-  transform: scale(1.1);
-  transition: transform 0.2s ease-in-out;
-} */
-.dialog .v-card--variant-elevated {
-  background: none !important;
+<style scoped>
+.booking-status-chip {
+  font-weight: 500;
 }
 
-.v-overlay__scrim {
-  backdrop-filter: blur(0.5px);
-  background: transparent !important;
+.booking-amount {
+  font-weight: 600;
+  color: rgb(var(--v-theme-primary));
 }
 </style>
