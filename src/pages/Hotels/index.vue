@@ -146,7 +146,7 @@ const editHotel = (hotelId: string) => {
 // Delete hotel
 const deleteHotel = async (hotel: any) => {
   try {
-    await store.DeleteHotel([hotel.id], getHotelName(hotel));
+    await store.DeleteHotel(hotel.id, getHotelName(hotel));
     // Refresh the list after deletion
     await store.GetAllHotels(filters.value);
   } catch (error) {

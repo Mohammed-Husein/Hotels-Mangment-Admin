@@ -46,6 +46,8 @@ const EditDto = ref<ModifyHotelDto>({
   id: hotelId,
   nameAr: "",
   images: [],
+  imagefile: [],
+  deleteImage: [],
   nameEn: "",
   type: "فندق",
   stars: 1,
@@ -489,7 +491,11 @@ const save = async () => {
             </VCol>
             <VCol cols="12">
               {{ EditDto.images }}
-              <FileUploader v-model:url="EditDto.images" />
+              <FileUploader
+                v-model:url="EditDto.images"
+                v-model="EditDto.imagefile"
+                v-model:deleteUrls="EditDto.deleteImage"
+              />
             </VCol>
           </VRow>
 

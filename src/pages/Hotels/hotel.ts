@@ -99,7 +99,7 @@ export const useHotelStore = defineStore("Hotels", () => {
       `${HOTEL_API.Modify}/${payload.id}`,
       payload,
       { error: true, success: "تمت العملية بنجاح" },
-      { formData: false }
+      { formData: true }
     );
 
     // Refresh the hotel details and list after modification
@@ -112,10 +112,10 @@ export const useHotelStore = defineStore("Hotels", () => {
   }
 
   // Delete Hotel
-  async function DeleteHotel(ids: string[], itemName: string) {
+  async function DeleteHotel(ids: string, itemName: string) {
     await DELETE(
-      HOTEL_API.Delete,
-      ids,
+      ` hotels/${ids}`,
+      {},
       {},
       {
         comfirm: {

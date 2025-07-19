@@ -79,7 +79,7 @@ export const useRoomsStore = defineStore("room", () => {
   // Delete Room
   async function DeleteRoom(ids: string, itemName: string) {
     await DELETE(
-      ` ${ROOM_API.Delete}/${ids}`,
+      `${ROOM_API.Delete}/${ids}`,
       {},
       {},
       {
