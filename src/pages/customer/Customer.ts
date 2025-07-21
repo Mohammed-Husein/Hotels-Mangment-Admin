@@ -54,7 +54,7 @@ export const useCustomerStore = defineStore("Customer", () => {
       {}
     );
 
-    CustomerNames.value = response.data;
+    CustomerNames.value = response.data?.data?.users;
   }
 
   // Get Cities by Country

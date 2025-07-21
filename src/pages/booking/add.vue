@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { useBookingStore } from "./booking";
 import { useHotelStore } from "../Hotels/hotel";
 import { useCustomerStore } from "../customer/Customer";
-import { useRoomStore } from "../rooms/room";
-
+import { useRoomsStore } from "../rooms/room";
+import { useBookingStore } from "./booking";
 const store = useBookingStore();
 const hotelStore = useHotelStore();
 const customerStore = useCustomerStore();
-const roomStore = useRoomStore();
+const roomStore = useRoomsStore();
 const router = useRouter();
 
 // Form data
@@ -23,12 +22,12 @@ const formData = ref({
     email: "",
     phone: "",
     nationality: "",
-    idNumber: ""
+    idNumber: "",
   },
   guestsCount: {
     adults: 1,
     children: 0,
-    infants: 0
+    infants: 0,
   },
   pricing: {
     roomBasePrice: 0,
@@ -37,10 +36,10 @@ const formData = ref({
     subtotal: 0,
     discount: 0,
     totalAmount: 0,
-    currency: "SYP"
+    currency: "SYP",
   },
   paymentMethodId: "",
-  notes: ""
+  notes: "",
 });
 
 // Loading states
@@ -49,8 +48,8 @@ const isSubmitting = ref(false);
 
 // Data lists
 const { HotelNames } = storeToRefs(hotelStore);
-const { CustomerList } = storeToRefs(customerStore);
-const { RoomList } = storeToRefs(roomStore);
+const { CustomerList, CustomerNames } = storeToRefs(customerStore);
+const { RoomList, RommsByHotel } = storeToRefs(roomStore);
 
 // Available rooms for selected hotel
 const availableRooms = ref([]);
@@ -59,7 +58,7 @@ const availableRooms = ref([]);
 const paymentMethods = ref([
   { id: "1", name: "نقداً", value: "cash" },
   { id: "2", name: "بطاقة ائتمان", value: "credit_card" },
-  { id: "3", name: "تحويل بنكي", value: "bank_transfer" }
+  { id: "3", name: "تحويل بنكي", value: "bank_transfer" },
 ]);
 
 // Computed properties
@@ -85,40 +84,60 @@ const calculatedTotal = computed(() => {
 });
 
 // Watch for date changes to calculate nights
-watch([() => formData.value.checkInDate, () => formData.value.checkOutDate], () => {
-  formData.value.numberOfNights = calculatedNights.value;
-  formData.value.pricing.roomTotalPrice = formData.value.pricing.roomBasePrice * calculatedNights.value;
-  formData.value.pricing.subtotal = formData.value.pricing.roomTotalPrice + formData.value.pricing.servicesTotalPrice;
-  formData.value.pricing.totalAmount = calculatedTotal.value;
-});
+watch(
+  [() => formData.value.checkInDate, () => formData.value.checkOutDate],
+  () => {
+    formData.value.numberOfNights = calculatedNights.value;
+    formData.value.pricing.roomTotalPrice =
+      formData.value.pricing.roomBasePrice * calculatedNights.value;
+    formData.value.pricing.subtotal =
+      formData.value.pricing.roomTotalPrice +
+      formData.value.pricing.servicesTotalPrice;
+    formData.value.pricing.totalAmount = calculatedTotal.value;
+  }
+);
 
 // Watch for hotel selection to load available rooms
-watch(() => formData.value.hotelId, async (newHotelId) => {
-  if (newHotelId) {
-    await loadAvailableRooms(newHotelId);
-  }
-});
-
-// Watch for room selection to get room price
-watch(() => formData.value.roomId, (newRoomId) => {
-  if (newRoomId) {
-    const selectedRoom = availableRooms.value.find(room => room.id === newRoomId);
-    if (selectedRoom) {
-      formData.value.pricing.roomBasePrice = selectedRoom.price;
-      formData.value.pricing.roomTotalPrice = selectedRoom.price * calculatedNights.value;
-      formData.value.pricing.subtotal = formData.value.pricing.roomTotalPrice + formData.value.pricing.servicesTotalPrice;
-      formData.value.pricing.totalAmount = calculatedTotal.value;
+watch(
+  () => formData.value.hotelId,
+  async (newHotelId) => {
+    if (newHotelId) {
+      await loadAvailableRooms(newHotelId);
     }
   }
-});
+);
+
+// Watch for room selection to get room price
+watch(
+  () => formData.value.roomId,
+  (newRoomId) => {
+    if (newRoomId) {
+      const selectedRoom = RommsByHotel.value.find(
+        (room) => room.id === newRoomId
+      );
+      if (selectedRoom) {
+        formData.value.pricing.roomBasePrice = selectedRoom.price;
+        formData.value.pricing.roomTotalPrice =
+          selectedRoom.price * calculatedNights.value;
+        formData.value.pricing.subtotal =
+          formData.value.pricing.roomTotalPrice +
+          formData.value.pricing.servicesTotalPrice;
+        formData.value.pricing.totalAmount = calculatedTotal.value;
+      }
+    }
+  }
+);
 
 // Methods
 const loadAvailableRooms = async (hotelId: string) => {
   try {
     isLoading.value = true;
     // Load rooms for the selected hotel
-    await roomStore.GetAllRooms({ hotelId });
-    availableRooms.value = RoomList.value.filter(room => room.status === 'Available');
+    await roomStore.GetAllRoomsByHotelId(hotelId);
+
+    availableRooms.value = RoomList.value.filter(
+      (room) => room.status === "Available"
+    );
   } catch (error) {
     console.error("Error loading rooms:", error);
   } finally {
@@ -129,7 +148,7 @@ const loadAvailableRooms = async (hotelId: string) => {
 const submitForm = async () => {
   try {
     isSubmitting.value = true;
-    
+
     const bookingData = {
       customerId: formData.value.customerId,
       roomId: formData.value.roomId,
@@ -141,14 +160,14 @@ const submitForm = async () => {
       totalAmount: formData.value.pricing.totalAmount,
       discount: formData.value.pricing.discount,
       paymentMethodId: formData.value.paymentMethodId,
-      notes: formData.value.notes
+      notes: formData.value.notes,
     };
 
     // TODO: Implement add booking in store
     // await store.AddBooking(bookingData);
-    
+
     // Navigate back to bookings list
-    router.push('/booking');
+    router.push("/booking");
   } catch (error) {
     console.error("Error creating booking:", error);
   } finally {
@@ -157,14 +176,56 @@ const submitForm = async () => {
 };
 
 const goBack = () => {
-  router.push('/booking');
+  router.push("/booking");
 };
+// Watch for customer selection to fill guest info
+watch(
+  () => formData.value.customerId,
+  (newCustomerId) => {
+    if (newCustomerId) {
+      const selectedCustomer = CustomerNames.value.find(
+        (customer) => customer.id === newCustomerId
+      );
+      if (selectedCustomer) {
+        formData.value.guestInfo.fullName = selectedCustomer.name;
+        formData.value.guestInfo.email = selectedCustomer.email;
+        formData.value.guestInfo.phone = selectedCustomer.phoneNumber;
+      }
+    }
+  }
+);
+// Watch for room selection to get room price
+watch(
+  () => formData.value.roomId,
+  (newRoomId) => {
+    if (newRoomId) {
+      const selectedRoom = RommsByHotel.value.find(
+        (room) => room.id === newRoomId
+      );
+      if (selectedRoom) {
+        // تحديث سعر الليلة الواحدة من pricePerNight
+        formData.value.pricing.roomBasePrice = selectedRoom.pricePerNight;
 
+        // حساب السعر الإجمالي للغرفة (السعر × عدد الليالي)
+        formData.value.pricing.roomTotalPrice =
+          selectedRoom.pricePerNight * formData.value.numberOfNights;
+
+        // تحديث المجموع الفرعي والكلي
+        formData.value.pricing.subtotal =
+          formData.value.pricing.roomTotalPrice +
+          formData.value.pricing.servicesTotalPrice;
+
+        formData.value.pricing.totalAmount = calculatedTotal.value;
+      }
+    }
+  },
+  { immediate: true } // للتأكد من التنفيذ عند التحميل الأولي
+);
 // Load initial data
 onMounted(async () => {
   await Promise.all([
     hotelStore.GetAllHotelNames(),
-    customerStore.GetAllCustomers({})
+    customerStore.GetAllCustomerName(),
   ]);
 });
 </script>
@@ -173,12 +234,8 @@ onMounted(async () => {
   <div>
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h3 class="text-h4 font-weight-semibold mb-1">
-          الحجوزات / إضافة حجز
-        </h3>
-        <p class="text-body-1 text-medium-emphasis">
-          إضافة حجز جديد للنظام
-        </p>
+        <h3 class="text-h4 font-weight-semibold mb-1">الحجوزات / إضافة حجز</h3>
+        <p class="text-body-1 text-medium-emphasis">إضافة حجز جديد للنظام</p>
       </div>
       <VBtn
         variant="outlined"
@@ -197,10 +254,10 @@ onMounted(async () => {
             <VCol cols="12" md="6">
               <VAutocomplete
                 v-model="formData.customerId"
-                :items="CustomerList"
-                item-title="fullName"
+                :items="CustomerNames"
+                item-title="name"
                 item-value="id"
-                label="العميل *"
+                label="العميل "
                 placeholder="اختر العميل"
                 :loading="isLoading"
                 required
@@ -212,12 +269,13 @@ onMounted(async () => {
               <VAutocomplete
                 v-model="formData.hotelId"
                 :items="HotelNames"
-                item-title="name.ar"
+                item-title="name"
                 item-value="id"
-                label="الفندق *"
+                label="الفندق "
                 placeholder="اختر الفندق"
                 :loading="isLoading"
                 required
+                @update:model-value="loadAvailableRooms(formData.hotelId)"
               />
             </VCol>
 
@@ -225,10 +283,10 @@ onMounted(async () => {
             <VCol cols="12" md="6">
               <VAutocomplete
                 v-model="formData.roomId"
-                :items="availableRooms"
+                :items="RommsByHotel"
                 item-title="numberRoom"
-                item-value="id"
-                label="الغرفة *"
+                item-value="numberRoom"
+                label="الغرفة "
                 placeholder="اختر الغرفة"
                 :loading="isLoading"
                 :disabled="!formData.hotelId"
@@ -427,7 +485,12 @@ onMounted(async () => {
                   type="submit"
                   color="primary"
                   :loading="isSubmitting"
-                  :disabled="!formData.customerId || !formData.roomId || !formData.checkInDate || !formData.checkOutDate"
+                  :disabled="
+                    !formData.customerId ||
+                    !formData.roomId ||
+                    !formData.checkInDate ||
+                    !formData.checkOutDate
+                  "
                 >
                   إضافة الحجز
                 </VBtn>

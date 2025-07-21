@@ -25,6 +25,11 @@ export default [
     icon: { icon: "tabler-door" },
   },
   {
+    title: "الحجوزات",
+    to: { name: "booking" },
+    icon: { icon: "tabler-calendar-event" },
+  },
+  {
     title: "الاعدادت",
     to: { name: "setting" },
     icon: { icon: "tabler-settings" },

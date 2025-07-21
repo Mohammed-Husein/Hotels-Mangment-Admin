@@ -13,8 +13,17 @@ export const useRoomsStore = defineStore("room", () => {
   const RoomList = ref<GetAllRooms["rooms"]>([]);
   const RoomDetails = ref<any>([]);
   const paginationRoom = createPagination();
-
+  const RommsByHotel = ref([]);
   // Get All Rooms
+  async function GetAllRoomsByHotelId(hotelId: any) {
+    const response = await GET<GetAllRooms>(
+      `${ROOM_API.GetAllRoomsByHotelId}/${hotelId}`,
+      {},
+      {},
+      {}
+    );
+    RommsByHotel.value = response.data?.data?.rooms;
+  }
   async function GetAllRooms(Filters: FilterRoomDto) {
     const response = await GET<GetAllRooms>(
       ROOM_API.GetAll,
@@ -110,5 +119,7 @@ export const useRoomsStore = defineStore("room", () => {
     RoomList,
     RoomDetails,
     paginationRoom,
+    GetAllRoomsByHotelId,
+    RommsByHotel,
   };
 });

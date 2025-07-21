@@ -42,6 +42,8 @@ declare module 'vue-router/auto/routes' {
     'root': RouteRecordInfo<'root', '/', Record<never, never>, Record<never, never>>,
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
     'booking': RouteRecordInfo<'booking', '/booking', Record<never, never>, Record<never, never>>,
+    'booking-id': RouteRecordInfo<'booking-id', '/booking/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'booking-add': RouteRecordInfo<'booking-add', '/booking/add', Record<never, never>, Record<never, never>>,
     'customer': RouteRecordInfo<'customer', '/customer', Record<never, never>, Record<never, never>>,
     'customer-id': RouteRecordInfo<'customer-id', '/customer/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'customer-components-add-customer': RouteRecordInfo<'customer-components-add-customer', '/customer/components/AddCustomer', Record<never, never>, Record<never, never>>,
