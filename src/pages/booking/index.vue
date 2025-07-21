@@ -158,6 +158,12 @@ const formatDate = (dateString: string) => {
     day: "2-digit",
   });
 };
+
+// Format currency helper
+const formatCurrency = (amount: number | null) => {
+  if (!amount || amount === 0) return "0 ل.س";
+  return `${amount.toLocaleString()} ل.س`;
+};
 onMounted(async () => {
   // Load hotel names for filter
   await hotelStore.GetAllHotelNames();
@@ -269,10 +275,19 @@ onMounted(async () => {
         </VChip>
       </template>
       <template #item.totalAmount="{ item }">
-        <span class="font-weight-medium">{{ item.totalAmount || 0 }} ل.س</span>
+        <span class="font-weight-medium text-success">
+          {{ formatCurrency(item.totalAmount) }}
+        </span>
       </template>
       <template #item.discount="{ item }">
-        <span>{{ item.discount || 0 }} ل.س</span>
+        <span class="text-warning">
+          {{ formatCurrency(item.discount) }}
+        </span>
+      </template>
+      <template #item.numberOfNights="{ item }">
+        <VChip color="primary" size="small" variant="tonal">
+          {{ item.numberOfNights || 0 }} ليلة
+        </VChip>
       </template>
       <template #item.actions="{ item }">
         <div class="d-flex gap-1 justify-center align-center">

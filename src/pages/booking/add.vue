@@ -48,11 +48,16 @@ const isSubmitting = ref(false);
 
 // Data lists
 const { HotelNames } = storeToRefs(hotelStore);
-const { CustomerList, CustomerNames } = storeToRefs(customerStore);
-const { RoomList, RommsByHotel } = storeToRefs(roomStore);
+const { CustomerNames } = storeToRefs(customerStore);
+const { RommsByHotel } = storeToRefs(roomStore);
 
-// Available rooms for selected hotel
-const availableRooms = ref([]);
+// Available rooms for selected hotel (computed to filter available rooms)
+const availableRooms = computed(() => {
+  if (!RommsByHotel.value || !Array.isArray(RommsByHotel.value)) {
+    return [];
+  }
+  return RommsByHotel.value.filter((room: any) => !room.isBooked);
+});
 
 // Payment methods (you might want to create a separate store for this)
 const paymentMethods = ref([
@@ -111,19 +116,25 @@ watch(
 watch(
   () => formData.value.roomId,
   (newRoomId) => {
-    if (newRoomId) {
+    if (newRoomId && RommsByHotel.value) {
       const selectedRoom = RommsByHotel.value.find(
-        (room) => room.id === newRoomId
+        (room: any) => room.id === newRoomId
       );
-      if (selectedRoom) {
-        formData.value.pricing.roomBasePrice = selectedRoom.price;
+      if (selectedRoom && selectedRoom.pricePerNight) {
+        formData.value.pricing.roomBasePrice = selectedRoom.pricePerNight;
         formData.value.pricing.roomTotalPrice =
-          selectedRoom.price * calculatedNights.value;
+          selectedRoom.pricePerNight * calculatedNights.value;
         formData.value.pricing.subtotal =
           formData.value.pricing.roomTotalPrice +
           formData.value.pricing.servicesTotalPrice;
         formData.value.pricing.totalAmount = calculatedTotal.value;
       }
+    } else {
+      // Reset pricing when no room is selected
+      formData.value.pricing.roomBasePrice = 0;
+      formData.value.pricing.roomTotalPrice = 0;
+      formData.value.pricing.subtotal = 0;
+      formData.value.pricing.totalAmount = 0;
     }
   }
 );
@@ -134,10 +145,6 @@ const loadAvailableRooms = async (hotelId: string) => {
     isLoading.value = true;
     // Load rooms for the selected hotel
     await roomStore.GetAllRoomsByHotelId(hotelId);
-
-    availableRooms.value = RoomList.value.filter(
-      (room) => room.status === "Available"
-    );
   } catch (error) {
     console.error("Error loading rooms:", error);
   } finally {
@@ -164,7 +171,7 @@ const submitForm = async () => {
     };
 
     // TODO: Implement add booking in store
-    // await store.AddBooking(bookingData);
+    await store.AddBooking(bookingData);
 
     // Navigate back to bookings list
     router.push("/booking");
@@ -182,15 +189,24 @@ const goBack = () => {
 watch(
   () => formData.value.customerId,
   (newCustomerId) => {
-    if (newCustomerId) {
+    if (newCustomerId && CustomerNames.value) {
       const selectedCustomer = CustomerNames.value.find(
-        (customer) => customer.id === newCustomerId
+        (customer: any) => customer.id === newCustomerId
       );
       if (selectedCustomer) {
-        formData.value.guestInfo.fullName = selectedCustomer.name;
-        formData.value.guestInfo.email = selectedCustomer.email;
-        formData.value.guestInfo.phone = selectedCustomer.phoneNumber;
+        formData.value.guestInfo.fullName =
+          (selectedCustomer as any).name || "";
+        formData.value.guestInfo.email = (selectedCustomer as any).email || "";
+        // Note: phone number is not available in CustomerNames, will need to be filled manually
+        formData.value.guestInfo.phone = "";
       }
+    } else {
+      // Reset guest info when no customer is selected
+      formData.value.guestInfo.fullName = "";
+      formData.value.guestInfo.email = "";
+      formData.value.guestInfo.phone = "";
+      formData.value.guestInfo.nationality = "";
+      formData.value.guestInfo.idNumber = "";
     }
   }
 );
@@ -198,11 +214,11 @@ watch(
 watch(
   () => formData.value.roomId,
   (newRoomId) => {
-    if (newRoomId) {
+    if (newRoomId && RommsByHotel.value) {
       const selectedRoom = RommsByHotel.value.find(
-        (room) => room.id === newRoomId
+        (room: any) => room.id === newRoomId
       );
-      if (selectedRoom) {
+      if (selectedRoom && selectedRoom.pricePerNight) {
         // تحديث سعر الليلة الواحدة من pricePerNight
         formData.value.pricing.roomBasePrice = selectedRoom.pricePerNight;
 
@@ -221,6 +237,11 @@ watch(
   },
   { immediate: true } // للتأكد من التنفيذ عند التحميل الأولي
 );
+// Format currency helper
+const formatCurrency = (amount: number) => {
+  return `${amount.toLocaleString()} ل.س`;
+};
+
 // Load initial data
 onMounted(async () => {
   await Promise.all([
@@ -283,9 +304,9 @@ onMounted(async () => {
             <VCol cols="12" md="6">
               <VAutocomplete
                 v-model="formData.roomId"
-                :items="RommsByHotel"
-                item-title="numberRoom"
-                item-value="numberRoom"
+                :items="availableRooms"
+                :item-title="(item: any) => `${item.numberRoom} - ${item.nameAr} (${item.pricePerNight} ل.س/ليلة)`"
+                item-value="id"
                 label="الغرفة "
                 placeholder="اختر الغرفة"
                 :loading="isLoading"

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useHotelStore } from "../Hotels/hotel";
 import { useCustomerStore } from "../customer/Customer";
-import { useRoomStore } from "../rooms/room";
+import { useRoomsStore } from "../rooms/room";
 import { useBookingStore } from "./booking";
 
 const store = useBookingStore();
 const hotelStore = useHotelStore();
 const customerStore = useCustomerStore();
-const roomStore = useRoomStore();
+const roomStore = useRoomsStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -54,11 +54,18 @@ const isSubmitting = ref(false);
 
 // Data lists
 const { HotelNames } = storeToRefs(hotelStore);
-const { CustomerList } = storeToRefs(customerStore);
-const { RoomList } = storeToRefs(roomStore);
+const { CustomerNames } = storeToRefs(customerStore);
+const { RommsByHotel } = storeToRefs(roomStore);
 
-// Available rooms for selected hotel
-const availableRooms = ref([]);
+// Available rooms for selected hotel (computed to filter available rooms)
+const availableRooms = computed(() => {
+  if (!RommsByHotel.value || !Array.isArray(RommsByHotel.value)) {
+    return [];
+  }
+  return RommsByHotel.value.filter(
+    (room: any) => !room.isBooked || room.id === formData.value.roomId
+  );
+});
 
 // Payment methods
 const paymentMethods = ref([
@@ -127,29 +134,37 @@ watch(
 watch(
   () => formData.value.roomId,
   (newRoomId) => {
-    if (newRoomId) {
-      const selectedRoom = availableRooms.value.find(
-        (room) => room.id === newRoomId
+    if (newRoomId && RommsByHotel.value) {
+      const selectedRoom = RommsByHotel.value.find(
+        (room: any) => room.id === newRoomId
       );
-      if (selectedRoom) {
-        formData.value.pricing.roomBasePrice = selectedRoom.price;
+      if (selectedRoom && selectedRoom.pricePerNight) {
+        formData.value.pricing.roomBasePrice = selectedRoom.pricePerNight;
         formData.value.pricing.roomTotalPrice =
-          selectedRoom.price * calculatedNights.value;
+          selectedRoom.pricePerNight * calculatedNights.value;
         formData.value.pricing.subtotal =
           formData.value.pricing.roomTotalPrice +
           formData.value.pricing.servicesTotalPrice;
         formData.value.pricing.totalAmount = calculatedTotal.value;
       }
+    } else {
+      // Reset pricing when no room is selected
+      formData.value.pricing.roomBasePrice = 0;
+      formData.value.pricing.roomTotalPrice = 0;
+      formData.value.pricing.subtotal = 0;
+      formData.value.pricing.totalAmount = 0;
     }
   }
 );
-
+onMounted(async () => {
+  await store.GetBookingById(bookingId);
+});
 // Methods
 const loadBookingDetails = async () => {
   try {
     isLoading.value = true;
     // TODO: Implement get booking by ID in store
-    // const booking = await store.GetBookingById(bookingId);
+    const booking = await store.GetBookingById(bookingId);
     // Fill form with booking data
     // formData.value = { ...booking };
   } catch (error) {
@@ -163,10 +178,7 @@ const loadAvailableRooms = async (hotelId: string) => {
   try {
     isLoading.value = true;
     // Load rooms for the selected hotel
-    await roomStore.GetAllRooms({ hotelId });
-    availableRooms.value = RoomList.value.filter(
-      (room) => room.status === "Available" || room.id === formData.value.roomId
-    );
+    await roomStore.GetAllRoomsByHotelId(hotelId);
   } catch (error) {
     console.error("Error loading rooms:", error);
   } finally {
@@ -195,7 +207,7 @@ const submitForm = async () => {
     };
 
     // TODO: Implement update booking in store
-    // await store.UpdateBooking(bookingData);
+    await store.UpdateBooking(bookingData);
 
     // Navigate back to bookings list
     router.push("/booking");
@@ -210,6 +222,25 @@ const goBack = () => {
   router.push("/booking");
 };
 
+// Watch for customer selection to auto-fill guest info
+watch(
+  () => formData.value.customerId,
+  (newCustomerId) => {
+    if (newCustomerId && CustomerNames.value) {
+      const selectedCustomer = CustomerNames.value.find(
+        (customer: any) => customer.id === newCustomerId
+      );
+      if (selectedCustomer) {
+        formData.value.guestInfo.fullName =
+          (selectedCustomer as any).name || "";
+        formData.value.guestInfo.email = (selectedCustomer as any).email || "";
+        // Note: phone number is not available in CustomerNames, will need to be filled manually
+        formData.value.guestInfo.phone = "";
+      }
+    }
+  }
+);
+
 // Active tab for the form
 const activeTab = ref("general");
 
@@ -217,7 +248,7 @@ const activeTab = ref("general");
 onMounted(async () => {
   await Promise.all([
     hotelStore.GetAllHotelNames(),
-    customerStore.GetAllCustomers({}),
+    customerStore.GetAllCustomerName(),
     loadBookingDetails(),
   ]);
 });
@@ -257,8 +288,8 @@ onMounted(async () => {
                 <VCol cols="12" md="6">
                   <VAutocomplete
                     v-model="formData.customerId"
-                    :items="CustomerList"
-                    item-title="fullName"
+                    :items="CustomerNames"
+                    item-title="name"
                     item-value="id"
                     label="العميل *"
                     placeholder="اختر العميل"
@@ -286,7 +317,7 @@ onMounted(async () => {
                   <VAutocomplete
                     v-model="formData.roomId"
                     :items="availableRooms"
-                    item-title="numberRoom"
+                    :item-title="(item: any) => `${item.numberRoom} - ${item.nameAr} (${item.pricePerNight} ل.س/ليلة)`"
                     item-value="id"
                     label="الغرفة *"
                     placeholder="اختر الغرفة"
