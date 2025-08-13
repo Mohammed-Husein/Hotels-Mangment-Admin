@@ -68,6 +68,21 @@ export const useBookingStore = defineStore("Booking", () => {
     return response.data;
   }
 
+  // Cancel booking
+  async function CancelBooking(id: string, reason: string) {
+    const response = await PUT(
+      `${BOOKING_API.Update}/${id}`,
+      {
+        status: "cancelled",
+        cancellationReason: reason,
+      },
+      {},
+      {}
+    );
+
+    return response.data?.data?.booking;
+  }
+
   return {
     BookingList,
     BookingDetails,
@@ -77,5 +92,6 @@ export const useBookingStore = defineStore("Booking", () => {
     AddBooking,
     UpdateBooking,
     DeleteBooking,
+    CancelBooking,
   };
 });
