@@ -147,17 +147,26 @@ const getStatusText = (status: string | null) => {
   );
   return statusOption ? statusOption.title : "غير محدد";
 };
-
-// Format date helper
-const formatDate = (dateString: string) => {
-  if (!dateString) return "غير محدد";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("ar-SA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+const getRowClass = (item: any) => {
+  // Highlight rows where operation type is Picking or Packing and status is New or Pending
+  if (item.status === "no_show") {
+    return "highlighted-row";
+  }
+  return "";
 };
+
+// Format date to DD/MM/YYYY, HH:MM
+function formatDate(dateString: string) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-UK", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 // Format currency helper
 const formatCurrency = (amount: number | null) => {
@@ -254,6 +263,11 @@ onMounted(async () => {
       no-data-text="لا يوجد بيانات"
       @update:options="updateOptions"
       @update:sort-by="onSortByUpdate"
+      :item-class="
+        (item) => ({
+          'highlighted-row': item.status === 'no_show',
+        })
+      "
     >
       <template #item.checkInDate="{ item }">
         <span>{{
@@ -330,5 +344,9 @@ onMounted(async () => {
 .booking-amount {
   font-weight: 600;
   color: rgb(var(--v-theme-primary));
+}
+
+.v-data-table__tr [data-value="no_show"] {
+  background-color: #ea545514 !important;
 }
 </style>

@@ -2,13 +2,14 @@
 import { useHotelStore } from "../Hotels/hotel";
 import { useCustomerStore } from "../customer/Customer";
 import { useRoomsStore } from "../rooms/room";
+import { usePaymentMethodStore } from "../setting/paymentMethodStore";
 import { useBookingStore } from "./booking";
 const store = useBookingStore();
 const hotelStore = useHotelStore();
 const customerStore = useCustomerStore();
 const roomStore = useRoomsStore();
 const router = useRouter();
-
+const methoudStore = usePaymentMethodStore();
 // Form data
 const formData = ref({
   customerId: "",
@@ -50,7 +51,7 @@ const isSubmitting = ref(false);
 const { HotelNames } = storeToRefs(hotelStore);
 const { CustomerNames } = storeToRefs(customerStore);
 const { RommsByHotel } = storeToRefs(roomStore);
-
+const { MethoudNames } = storeToRefs(methoudStore);
 // Available rooms for selected hotel (computed to filter available rooms)
 const availableRooms = computed(() => {
   if (!RommsByHotel.value || !Array.isArray(RommsByHotel.value)) {
@@ -171,8 +172,9 @@ const submitForm = async () => {
     };
 
     // TODO: Implement add booking in store
-    await store.AddBooking(bookingData);
-
+    const res = await store.AddBooking(bookingData).then(() => {
+      console.log(res, "resssssss");
+    });
     // Navigate back to bookings list
     router.push("/booking");
   } catch (error) {
@@ -247,6 +249,7 @@ onMounted(async () => {
   await Promise.all([
     hotelStore.GetAllHotelNames(),
     customerStore.GetAllCustomerName(),
+    methoudStore.GetAllPaymentMethodName(),
   ]);
 });
 </script>
@@ -479,10 +482,10 @@ onMounted(async () => {
             <VCol cols="12" md="6">
               <VSelect
                 v-model="formData.paymentMethodId"
-                :items="paymentMethods"
-                item-title="name"
+                :items="MethoudNames"
+                item-title="name.ar"
                 item-value="id"
-                label="طريقة الدفع *"
+                label="طريقة الدفع "
                 placeholder="اختر طريقة الدفع"
                 required
               />

@@ -62,31 +62,12 @@ export const useAuth = (config: useAuthconfig = authConfig) => {
 
         return response;
       }
-    } catch (error: any) {
-      console.log("Login Error:", error);
+    } catch (error) {
+      // const result = HandleLoginError(er as AxiosError, payload);
 
-      // Handle specific login errors
-      if (error?.response?.data) {
-        const errorData = error.response.data;
-
-        // Handle validation errors format: {status: "fail", message: "...", errors: [...]}
-        if (errorData.status === "fail" && errorData.errors && Array.isArray(errorData.errors)) {
-          // Don't show individual field errors for login, just the main message
-          if (errorData.message) {
-            toast.error(errorData.message, { timeout: 8000 });
-          } else {
-            toast.error("خطأ في بيانات تسجيل الدخول", { timeout: 8000 });
-          }
-        } else if (errorData.message) {
-          toast.error(errorData.message, { timeout: 8000 });
-        } else {
-          toast.error("فشل في تسجيل الدخول، يرجى التحقق من البيانات", { timeout: 8000 });
-        }
-      } else {
-        toast.error("خطأ في الاتصال، يرجى المحاولة مرة أخرى", { timeout: 8000 });
-      }
-
+      console.log("CATCH", error);
       throw error;
+      // toast.error(result);
     }
   }
 
@@ -108,7 +89,7 @@ export const useAuth = (config: useAuthconfig = authConfig) => {
 
   function GetAccessToken() {
     const userData = GetUserData();
-    if (userData && userData.data.accessToken) return userData.data.accessToken;
+    if (userData && userData.accessToken) return userData.accessToken;
     else return null;
   }
   function GetAccessTokenDecoded(): RefreshTokenDecoded | null {
@@ -117,7 +98,7 @@ export const useAuth = (config: useAuthconfig = authConfig) => {
   }
 
   function GetRefreshToken() {
-    return GetUserData()?.data.refreshToken;
+    return GetUserData()?.refreshToken;
   }
 
   // TODO                                            .
@@ -191,7 +172,7 @@ export const useAuth = (config: useAuthconfig = authConfig) => {
     console.log("Refreshing token");
     try {
       const response = await axiosIns.post(config.refreshTokenEndPoint, {
-        employeeId: userData?.data.id, // تم التغيير من id إلى employeeId
+        id: userData?.id,
         refreshToken: GetRefreshToken(),
       });
 
@@ -201,10 +182,7 @@ export const useAuth = (config: useAuthconfig = authConfig) => {
       if (accessToken && userData) {
         SetUserData({
           ...userData,
-          data: {
-            ...userData.data,
-            accessToken,
-          },
+          accessToken,
         });
       }
 

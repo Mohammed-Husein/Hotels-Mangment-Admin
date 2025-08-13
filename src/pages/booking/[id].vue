@@ -1,16 +1,16 @@
 <script setup lang="ts">
+import { useToast } from "vue-toastification";
 import { useHotelStore } from "../Hotels/hotel";
 import { useCustomerStore } from "../customer/Customer";
 import { useRoomsStore } from "../rooms/room";
 import { useBookingStore } from "./booking";
-
 const store = useBookingStore();
 const hotelStore = useHotelStore();
 const customerStore = useCustomerStore();
 const roomStore = useRoomsStore();
 const router = useRouter();
 const route = useRoute();
-
+const toast = useToast();
 const bookingId = route.params.id as string;
 
 // Form data
@@ -318,6 +318,7 @@ const submitForm = async () => {
 
     // Show success message
     console.log("تم تحديث الحجز بنجاح");
+    toast.success("تم تحديث الحجز بنجاح");
 
     // Navigate back to bookings list
     router.push("/booking");
@@ -346,7 +347,7 @@ const cancelBooking = async () => {
 
     // Show success message
     console.log("تم إلغاء الحجز بنجاح");
-
+    toast.warning("تم إلغاء الحجز بنجاح");
     // Close dialog and navigate back
     showCancelDialog.value = false;
     router.push("/booking");
@@ -460,15 +461,21 @@ onMounted(async () => {
         <VRow>
           <VCol cols="12" md="3">
             <div class="text-body-2 text-medium-emphasis mb-1">رقم الحجز</div>
-            <div class="text-h6 font-weight-medium">{{ formData.bookingNumber }}</div>
+            <div class="text-h6 font-weight-medium">
+              {{ formData.bookingNumber }}
+            </div>
           </VCol>
           <VCol cols="12" md="3">
             <div class="text-body-2 text-medium-emphasis mb-1">العميل</div>
-            <div class="text-h6 font-weight-medium">{{ formData.customer.fullName }}</div>
+            <div class="text-h6 font-weight-medium">
+              {{ formData.customer.fullName }}
+            </div>
           </VCol>
           <VCol cols="12" md="3">
             <div class="text-body-2 text-medium-emphasis mb-1">الفندق</div>
-            <div class="text-h6 font-weight-medium">{{ formData.hotel.name.ar }}</div>
+            <div class="text-h6 font-weight-medium">
+              {{ formData.hotel.name.ar }}
+            </div>
           </VCol>
           <VCol cols="12" md="3">
             <div class="text-body-2 text-medium-emphasis mb-1">حالة الحجز</div>
@@ -749,16 +756,28 @@ onMounted(async () => {
                     </VCardTitle>
                     <VCardText class="pa-4 pt-0">
                       <div class="mb-3">
-                        <div class="text-body-2 text-medium-emphasis">الاسم الكامل</div>
-                        <div class="text-body-1 font-weight-medium">{{ formData.customer.fullName }}</div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          الاسم الكامل
+                        </div>
+                        <div class="text-body-1 font-weight-medium">
+                          {{ formData.customer.fullName }}
+                        </div>
                       </div>
                       <div class="mb-3">
-                        <div class="text-body-2 text-medium-emphasis">البريد الإلكتروني</div>
-                        <div class="text-body-1">{{ formData.customer.email }}</div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          البريد الإلكتروني
+                        </div>
+                        <div class="text-body-1">
+                          {{ formData.customer.email }}
+                        </div>
                       </div>
                       <div class="mb-3">
-                        <div class="text-body-2 text-medium-emphasis">رقم الهاتف</div>
-                        <div class="text-body-1">{{ formData.customer.phoneNumber }}</div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          رقم الهاتف
+                        </div>
+                        <div class="text-body-1">
+                          {{ formData.customer.phoneNumber }}
+                        </div>
                       </div>
                     </VCardText>
                   </VCard>
@@ -773,16 +792,29 @@ onMounted(async () => {
                     </VCardTitle>
                     <VCardText class="pa-4 pt-0">
                       <div class="mb-3">
-                        <div class="text-body-2 text-medium-emphasis">رقم الغرفة</div>
-                        <div class="text-body-1 font-weight-medium">{{ formData.room.numberRoom }}</div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          رقم الغرفة
+                        </div>
+                        <div class="text-body-1 font-weight-medium">
+                          {{ formData.room.numberRoom }}
+                        </div>
                       </div>
                       <div class="mb-3">
-                        <div class="text-body-2 text-medium-emphasis">اسم الغرفة</div>
-                        <div class="text-body-1">{{ formData.room.name.ar }}</div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          اسم الغرفة
+                        </div>
+                        <div class="text-body-1">
+                          {{ formData.room.name.ar }}
+                        </div>
                       </div>
                       <div class="mb-3">
-                        <div class="text-body-2 text-medium-emphasis">سعر الليلة</div>
-                        <div class="text-body-1 font-weight-medium">{{ formData.room.price }} {{ formData.pricing.currency }}</div>
+                        <div class="text-body-2 text-medium-emphasis">
+                          سعر الليلة
+                        </div>
+                        <div class="text-body-1 font-weight-medium">
+                          {{ formData.room.price }}
+                          {{ formData.pricing.currency }}
+                        </div>
                       </div>
                     </VCardText>
                   </VCard>
@@ -798,26 +830,50 @@ onMounted(async () => {
                     <VCardText class="pa-4 pt-0">
                       <VRow>
                         <VCol cols="12" md="3">
-                          <div class="text-body-2 text-medium-emphasis mb-1">طريقة الدفع</div>
-                          <div class="text-body-1 font-weight-medium">{{ formData.payment.paymentMethod.name.ar }}</div>
+                          <div class="text-body-2 text-medium-emphasis mb-1">
+                            طريقة الدفع
+                          </div>
+                          <div class="text-body-1 font-weight-medium">
+                            {{ formData.payment.paymentMethod.name.ar }}
+                          </div>
                         </VCol>
                         <VCol cols="12" md="3">
-                          <div class="text-body-2 text-medium-emphasis mb-1">حالة الدفع</div>
+                          <div class="text-body-2 text-medium-emphasis mb-1">
+                            حالة الدفع
+                          </div>
                           <VChip
-                            :color="formData.payment.status === 'paid' ? 'success' : 'warning'"
+                            :color="
+                              formData.payment.status === 'paid'
+                                ? 'success'
+                                : 'warning'
+                            "
                             variant="tonal"
                             size="small"
                           >
-                            {{ formData.payment.status === 'paid' ? 'مدفوع' : 'معلق' }}
+                            {{
+                              formData.payment.status === "paid"
+                                ? "مدفوع"
+                                : "معلق"
+                            }}
                           </VChip>
                         </VCol>
                         <VCol cols="12" md="3">
-                          <div class="text-body-2 text-medium-emphasis mb-1">المبلغ المدفوع</div>
-                          <div class="text-body-1 font-weight-medium">{{ formData.payment.paidAmount }} {{ formData.pricing.currency }}</div>
+                          <div class="text-body-2 text-medium-emphasis mb-1">
+                            المبلغ المدفوع
+                          </div>
+                          <div class="text-body-1 font-weight-medium">
+                            {{ formData.payment.paidAmount }}
+                            {{ formData.pricing.currency }}
+                          </div>
                         </VCol>
                         <VCol cols="12" md="3">
-                          <div class="text-body-2 text-medium-emphasis mb-1">المبلغ المتبقي</div>
-                          <div class="text-body-1 font-weight-medium">{{ formData.payment.remainingAmount }} {{ formData.pricing.currency }}</div>
+                          <div class="text-body-2 text-medium-emphasis mb-1">
+                            المبلغ المتبقي
+                          </div>
+                          <div class="text-body-1 font-weight-medium">
+                            {{ formData.payment.remainingAmount }}
+                            {{ formData.pricing.currency }}
+                          </div>
                         </VCol>
                       </VRow>
                     </VCardText>
@@ -886,14 +942,11 @@ onMounted(async () => {
 
         <VCardText class="pa-6 pt-0">
           <p class="text-body-1 mb-4">
-            هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟ هذا الإجراء لا يمكن التراجع عنه.
+            هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟ هذا الإجراء لا يمكن
+            التراجع عنه.
           </p>
 
-          <VAlert
-            type="warning"
-            variant="tonal"
-            class="mb-4"
-          >
+          <VAlert type="warning" variant="tonal" class="mb-4">
             رقم الحجز: {{ formData.bookingNumber }}
           </VAlert>
 

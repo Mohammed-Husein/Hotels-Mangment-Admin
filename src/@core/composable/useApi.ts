@@ -59,20 +59,29 @@ export const useApi = () => {
       console.log("Error Handler Catch", response);
       if (response.data) {
         // Handle validation errors with new format: {status: "fail", message: "...", errors: [...]}
-        if (response.data.status === "fail" && response.data.errors && Array.isArray(response.data.errors)) {
+        if (
+          response.data.status === "fail" &&
+          response.data.errors &&
+          Array.isArray(response.data.errors)
+        ) {
           // Show main error message
           if (response.data.message) {
-            toast.error(response.data.message, { timeout: 8000 });
+            toast.error(response.data.message || response.data, {
+              timeout: 8000,
+            });
           }
 
           // Show individual field errors
           response.data.errors.forEach((error: any) => {
             if (error.field && error.message) {
-              toast.error(`${getFieldDisplayName(error.field)}: ${error.message}`, {
-                timeout: 10000,
-                position: "top-right"
-              });
-            } else if (typeof error === 'string') {
+              toast.error(
+                `${getFieldDisplayName(error.field)}: ${error.message}`,
+                {
+                  timeout: 10000,
+                  position: "top-right",
+                }
+              );
+            } else if (typeof error === "string") {
               toast.error(error, { timeout: 8000 });
             }
           });
@@ -120,24 +129,24 @@ export const useApi = () => {
   // Helper function to get display names for fields in Arabic
   const getFieldDisplayName = (fieldName: string): string => {
     const fieldNames: Record<string, string> = {
-      'password': 'كلمة المرور',
-      'email': 'البريد الإلكتروني',
-      'phoneNumber': 'رقم الهاتف',
-      'fullName': 'الاسم الكامل',
-      'firstName': 'الاسم الأول',
-      'lastName': 'الاسم الثاني',
-      'countryId': 'البلد',
-      'cityId': 'المدينة',
-      'regionId': 'المنطقة',
-      'role': 'الدور الوظيفي',
-      'confirmPassword': 'تأكيد كلمة المرور',
-      'alternatePhoneNumber': 'رقم الهاتف البديل',
-      'preferredLanguage': 'اللغة المفضلة',
-      'detailedAddress': 'العنوان التفصيلي',
-      'deviceToken': 'رمز الجهاز',
-      'notes': 'الملاحظات',
-      'permissions': 'الصلاحيات',
-      'status': 'الحالة'
+      password: "كلمة المرور",
+      email: "البريد الإلكتروني",
+      phoneNumber: "رقم الهاتف",
+      fullName: "الاسم الكامل",
+      firstName: "الاسم الأول",
+      lastName: "الاسم الثاني",
+      countryId: "البلد",
+      cityId: "المدينة",
+      regionId: "المنطقة",
+      role: "الدور الوظيفي",
+      confirmPassword: "تأكيد كلمة المرور",
+      alternatePhoneNumber: "رقم الهاتف البديل",
+      preferredLanguage: "اللغة المفضلة",
+      detailedAddress: "العنوان التفصيلي",
+      deviceToken: "رمز الجهاز",
+      notes: "الملاحظات",
+      permissions: "الصلاحيات",
+      status: "الحالة",
     };
 
     return fieldNames[fieldName] || fieldName;

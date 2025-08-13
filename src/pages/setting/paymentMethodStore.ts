@@ -39,6 +39,12 @@ export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
       (response.data?.data.count || 0) / paginationPaymentMethod.value.limit
     );
   }
+  const MethoudNames = ref([]);
+
+  async function GetAllPaymentMethodName() {
+    const response = await GET("payment-methods/names", {}, {}, {});
+    MethoudNames.value = response.data?.data?.paymentMethods;
+  }
 
   // إضافة طريقة دفع جديدة
   async function AddPaymentMethod(payload: any) {
@@ -130,5 +136,7 @@ export const usePaymentMethodStore = defineStore("PaymentMethod", () => {
     GetPaymentMethodById,
     paymentMethodDetails,
     DeletePaymentMethod,
+    MethoudNames,
+    GetAllPaymentMethodName,
   };
 });

@@ -3,9 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.swal2-confirm-btn {
-    color: #fff !important; /* ✅ اجعل النص باللون الأبيض */
-  }
-  .swal2-cancel-btn{
-    color: #EA5455 !important;
-  }
+.v-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
